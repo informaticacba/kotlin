@@ -263,6 +263,9 @@ include ":benchmarks",
         ":kotlin-serialization-unshaded",
         ":wasm:wasm.ir"
 
+include ":kotlinx-atomicfu-compiler-plugin",
+        ":kotlinx-atomicfu-runtime",
+        ":atomicfu"
 
 include ":compiler:fir",
         ":compiler:fir:cones",
@@ -624,6 +627,10 @@ project(':js:js.engines').projectDir = "$rootDir/js/js.engines" as File
 project(':kotlinx-serialization-compiler-plugin').projectDir = file("$rootDir/plugins/kotlin-serialization/kotlin-serialization-compiler")
 project(':kotlin-serialization').projectDir = file("$rootDir/libraries/tools/kotlin-serialization")
 project(':kotlin-serialization-unshaded').projectDir = file("$rootDir/libraries/tools/kotlin-serialization-unshaded")
+
+project(':kotlinx-atomicfu-compiler-plugin').projectDir = file("$rootDir/plugins/atomicfu/atomicfu-compiler")
+project(':kotlinx-atomicfu-runtime').projectDir = file("$rootDir/plugins/atomicfu/atomicfu-runtime")
+project(':atomicfu').projectDir = file("$rootDir/libraries/tools/atomicfu")
 
 project(":idea-frontend-fir:idea-fir-low-level-api").projectDir = "$rootDir/idea/idea-frontend-fir/idea-fir-low-level-api" as File
 project(":idea-frontend-fir:idea-frontend-fir-generator").projectDir = "$rootDir/idea/idea-frontend-fir/idea-frontend-fir-generator" as File
