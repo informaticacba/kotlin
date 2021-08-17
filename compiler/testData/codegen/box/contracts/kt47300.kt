@@ -1,3 +1,4 @@
+// !USE_EXPERIMENTAL: kotlin.contracts.ExperimentalContracts
 // WITH_RUNTIME
 
 import kotlin.contracts.ExperimentalContracts

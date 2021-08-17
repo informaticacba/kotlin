@@ -674,6 +674,8 @@ project(':kotlin-scripting-ide-common').projectDir = "$rootDir/plugins/scripting
 // Uncomment to use locally built protobuf-relocated
 // includeBuild("dependencies/protobuf")
 if (buildProperties.isKotlinNativeEnabled) {
+    include ':native:tests-native-blackbox'
+    project(':native:tests-native-blackbox').projectDir = "$rootDir/native/tests-blackbox" as File
     include ':kotlin-native:dependencies'
     include ':kotlin-native:endorsedLibraries:kotlinx.cli'
     include ':kotlin-native:endorsedLibraries'
