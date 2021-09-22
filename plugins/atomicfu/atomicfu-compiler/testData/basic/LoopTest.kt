@@ -54,6 +54,7 @@ class LoopTest {
         assertEquals(66, a.extensionLoop(66))
         assertEquals(77, a.extensionLoopExpression(777))
         assertEquals(99, a.extensionLoopMixedReceivers(88, 99))
+        assertEquals(5, a.extensionLoopRecursive(100))
     }
 
     private inline fun AtomicRef<A>.casLoop(to: String): String = loop { cur ->

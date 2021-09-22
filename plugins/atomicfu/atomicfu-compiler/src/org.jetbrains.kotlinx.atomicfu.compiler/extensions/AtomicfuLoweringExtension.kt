@@ -48,6 +48,6 @@ private class AtomicfuClassLowering(
     val context: IrPluginContext
 ) : IrElementTransformerVoid(), FileLoweringPass {
     override fun lower(irFile: IrFile) {
-        AtomicFUTransformer.transform(irFile, context)
+        AtomicFUTransformer(context).transform(irFile)
     }
 }
