@@ -2556,6 +2556,17 @@ void leaveFrame(ObjHeader** start, int parameters, int count) {
   }
 }
 
+template <bool Strict>
+void setCurrentFrame(ObjHeader** start) {
+    MEMORY_LOG("SetCurrentFrame %p\n", start)
+    FrameOverlay* frame = reinterpret_cast<FrameOverlay*>(start);
+    if (Strict) {
+        currentFrame = frame;
+    } else {
+        RuntimeFail("Relaxed memory model is deprecated and doesn't support exception handling proper way!\n");
+    }
+}
+
 void suspendGC() {
   GC_LOG("suspendGC\n")
   memoryState->gcSuspendCount++;
@@ -3461,6 +3472,13 @@ RUNTIME_NOTHROW void LeaveFrameRelaxed(ObjHeader** start, int parameters, int co
   leaveFrame<false>(start, parameters, count);
 }
 
+RUNTIME_NOTHROW void SetCurrentFrameStrict(ObjHeader** start) {
+    setCurrentFrame<true>(start);
+}
+RUNTIME_NOTHROW void SetCurrentFrameRelaxed(ObjHeader** start) {
+    setCurrentFrame<false>(start);
+}
+
 void Kotlin_native_internal_GC_collect(KRef) {
 #if USE_GC
   garbageCollect();
@@ -3647,6 +3665,10 @@ RUNTIME_NOTHROW void GC_RegisterWorker(void* worker) {
 #if USE_CYCLIC_GC
   cyclicAddWorker(worker);
 #endif  // USE_CYCLIC_GC
+}
+
+RUNTIME_NOTHROW FrameOverlay* getCurrentFrame() {
+    return currentFrame;
 }
 
 RUNTIME_NOTHROW void GC_UnregisterWorker(void* worker) {
