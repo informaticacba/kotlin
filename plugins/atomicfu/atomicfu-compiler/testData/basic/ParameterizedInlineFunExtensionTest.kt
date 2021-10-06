@@ -3,7 +3,14 @@ import kotlin.test.*
 
 class ParameterizedInlineFunExtensionTest {
 
-    internal inline fun <S> AtomicRef<S>.foo(res1: S, res2: S, foo: (S) -> S): S { return res2 }
+    private inline fun <S> AtomicRef<S>.foo(res1: S, res2: S, foo: (S) -> S): S {
+        val res = bar(res1, res2)
+        return res
+    }
+
+    private inline fun <S> AtomicRef<S>.bar(res1: S, res2: S): S {
+        return res2
+    }
 
     private val tail = atomic("aaa")
 
