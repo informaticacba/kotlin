@@ -17,7 +17,7 @@ dependencies {
     compileOnly project(':kotlin-gradle-plugin-api')
 
     compileOnly kotlinStdlib()
-    compileOnly project(path: ':kotlin-compiler-embeddable', configuration: 'runtimeJar')
+    compileOnly project(':kotlin-compiler-embeddable')
 
     embedded(project(":kotlinx-atomicfu-compiler-plugin")) { transitive = true }
 }

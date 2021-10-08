@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.gradle.dsl.*
 
 @Suppress("DEPRECATION")
 class AtomicfuKotlinGradleSubplugin :
-    @Suppress("DEPRECATION") // implementing to fix KT-39809
+    @Suppress("DEPRECATION_ERROR") // implementing to fix KT-39809
     KotlinGradleSubplugin<AbstractCompile> {
     companion object {
         const val ATOMICFU_ARTIFACT_NAME = "atomicfu"

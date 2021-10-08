@@ -54,7 +54,7 @@ dependencies {
     compileOnly(project(":compiler:ir.backend.common"))
     compileOnly(project(":js:js.frontend"))
     compileOnly(project(":js:js.translator"))
-    compile(project(":compiler:backend.js"))
+    compileOnly(project(":compiler:backend.js"))
 
     compileOnly(project(":kotlinx-atomicfu-runtime")) {
         attributes {
@@ -67,15 +67,15 @@ dependencies {
 
     runtimeOnly(kotlinStdlib())
 
-    testCompile(projectTests(":compiler:tests-common"))
-    testCompile(projectTests(":js:js.tests"))
-    testCompile(commonDep("junit:junit"))
+    testApi(projectTests(":compiler:tests-common"))
+    testImplementation(projectTests(":js:js.tests"))
+    testApi(commonDep("junit:junit"))
 
-    testRuntime(kotlinStdlib())
-    testRuntime(project(":kotlin-reflect"))
-    testRuntime(project(":kotlin-preloader")) // it's required for ant tests
-    testRuntime(project(":compiler:backend-common"))
-    testRuntime(commonDep("org.fusesource.jansi", "jansi"))
+    testRuntimeOnly(kotlinStdlib())
+    testRuntimeOnly(project(":kotlin-reflect"))
+    testRuntimeOnly(project(":kotlin-preloader")) // it's required for ant tests
+    testRuntimeOnly(project(":compiler:backend-common"))
+    testRuntimeOnly(commonDep("org.fusesource.jansi", "jansi"))
 
     atomicfuClasspath("org.jetbrains.kotlinx:atomicfu-js:0.15.1") {
         isTransitive = false
