@@ -8,7 +8,6 @@ package org.jetbrains.kotlinx.atomicfu.compiler.extensions
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
@@ -169,7 +168,7 @@ internal fun IrPluginContext.buildAccessorLambda(
     isSetter: Boolean,
     isArrayElement: Boolean,
     parentDeclaration: IrDeclarationParent
-): IrFunctionExpression {
+): IrExpression {
     val getterCall = if (isArrayElement) getter.dispatchReceiver as IrCall else getter
     val type = if (isSetter) buildSetterType(valueType) else buildGetterType(valueType)
     val name = if (isSetter) setterName(getterCall) else getterName(getterCall)
@@ -262,7 +261,6 @@ private fun IrPluginContext.referenceArrayClass(irType: IrSimpleType): IrClassSy
 }
 
 internal fun IrPluginContext.getArrayConstructorSymbol(irType: IrSimpleType, predicate: (IrConstructorSymbol) -> Boolean = { true }): IrConstructorSymbol {
-    // todo check correctness of this way to get type name
     val afuClassId = (irType.classifier.signature!!.asPublic())!!.declarationFqName
     val classId = FqName("$KOTLIN.${AFU_ARRAY_CLASSES[afuClassId]!!}")
     return referenceConstructors(classId).single(predicate)
