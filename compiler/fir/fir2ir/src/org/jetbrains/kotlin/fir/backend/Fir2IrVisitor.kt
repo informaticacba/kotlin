@@ -48,6 +48,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtForExpression
+import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 class Fir2IrVisitor(
@@ -453,6 +454,15 @@ class Fir2IrVisitor(
     override fun visitExpressionWithSmartcast(expressionWithSmartcast: FirExpressionWithSmartcast, data: Any?): IrElement {
         // Generate the expression with the original type and then cast it to the smart cast type.
         val value = convertToIrExpression(expressionWithSmartcast.originalExpression)
+        if (data is FirReference) {
+            val originalTypeFromSmartcast = expressionWithSmartcast.originalExpression.typeRef.coneType
+            val calleeDispatchReceiverType = data.toResolvedCallableSymbol()?.dispatchReceiverType?.type
+            if (calleeDispatchReceiverType != null &&
+                AbstractTypeChecker.isSubtypeOf(session.typeContext, originalTypeFromSmartcast, calleeDispatchReceiverType)
+            ) {
+                return value
+            }
+        }
         return implicitCastInserter.visitExpressionWithSmartcast(expressionWithSmartcast, value)
     }
 
@@ -491,7 +501,7 @@ class Fir2IrVisitor(
         return accept(this@Fir2IrVisitor, null) as IrStatement
     }
 
-    internal fun convertToIrExpression(expression: FirExpression, annotationMode: Boolean = false): IrExpression {
+    internal fun convertToIrExpression(expression: FirExpression, annotationMode: Boolean = false, calleeReference: FirReference? = null): IrExpression {
         return when (expression) {
             is FirBlock -> expression.convertToIrExpressionOrBlock(
                 if (expression.source?.kind == FirFakeSourceElementKind.DesugaredForLoop) IrStatementOrigin.FOR_LOOP else null
@@ -506,11 +516,15 @@ class Fir2IrVisitor(
                 if (annotationMode && unwrappedExpression is FirFunctionCall) {
                     convertToIrCall(unwrappedExpression, annotationMode)
                 } else {
-                    expression.accept(this, null) as IrExpression
+                    expression.accept(this, calleeReference) as IrExpression
                 }
             }
         }.let {
-            expression.accept(implicitCastInserter, it) as IrExpression
+            if (expression !is FirExpressionWithSmartcast) {
+                expression.accept(implicitCastInserter, it) as IrExpression
+            } else {
+                it
+            }
         }
     }
 
@@ -523,7 +537,7 @@ class Fir2IrVisitor(
             null -> return null
             is FirResolvedQualifier -> callGenerator.convertToGetObject(expression, callableReferenceAccess)
             is FirFunctionCall, is FirThisReceiverExpression, is FirCallableReferenceAccess, is FirExpressionWithSmartcast ->
-                convertToIrExpression(expression)
+                convertToIrExpression(expression, calleeReference = calleeReference)
             else -> if (expression is FirQualifiedAccessExpression && expression.explicitReceiver == null) {
                 val variableAsFunctionMode = calleeReference is FirResolvedNamedReference &&
                         calleeReference.name != OperatorNameConventions.INVOKE &&

@@ -302,10 +302,9 @@ class Fir2IrImplicitCastInserter(
                 ?: return implicitCastOrExpression(original, originalTypeRef)
 
         if (originalTypeRefFromSmartcast != null &&
-            original is IrTypeOperatorCall &&
             AbstractTypeChecker.isSubtypeOf(session.typeContext, originalTypeRefFromSmartcast.coneType, dispatchReceiverType)
         ) {
-            return original.argument
+            return original
         }
 
         val starProjectedDispatchReceiver = dispatchReceiverType.replaceArgumentsWithStarProjections()
