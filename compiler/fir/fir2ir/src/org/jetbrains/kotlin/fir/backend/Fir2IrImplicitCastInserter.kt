@@ -291,6 +291,7 @@ class Fir2IrImplicitCastInserter(
         original: IrExpression,
         originalTypeRef: FirTypeRef,
         calleeReference: FirReference,
+        originalTypeRefFromSmartcast: FirTypeRef?
     ): IrExpression {
         val referencedDeclaration =
             ((calleeReference as? FirResolvedNamedReference)?.resolvedSymbol as? FirCallableSymbol<*>)?.unwrapCallRepresentative()
@@ -299,6 +300,13 @@ class Fir2IrImplicitCastInserter(
         val dispatchReceiverType =
             referencedDeclaration?.dispatchReceiverType as? ConeClassLikeType
                 ?: return implicitCastOrExpression(original, originalTypeRef)
+
+        if (originalTypeRefFromSmartcast != null &&
+            original is IrTypeOperatorCall &&
+            AbstractTypeChecker.isSubtypeOf(session.typeContext, originalTypeRefFromSmartcast.coneType, dispatchReceiverType)
+        ) {
+            return original.argument
+        }
 
         val starProjectedDispatchReceiver = dispatchReceiverType.replaceArgumentsWithStarProjections()
 
