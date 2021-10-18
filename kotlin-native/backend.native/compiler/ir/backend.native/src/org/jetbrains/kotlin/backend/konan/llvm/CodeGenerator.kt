@@ -471,7 +471,7 @@ internal abstract class FunctionGenerationContext(
     private val entryBb = basicBlockInFunction("entry", startLocation)
     protected val cleanupLandingpad = basicBlockInFunction("cleanup_landingpad", endLocation)
 
-    private val needLeaveFrameInUnwindEpilogue: Boolean
+    protected open val needLeaveFrameInUnwindEpilogue: Boolean
         get() = irFunction?.annotations?.hasAnnotation(RuntimeNames.exportForCppRuntime) == true
                 || forwardingForeignExceptionsTerminatedWith != null
                 || irFunction?.origin == CBridgeOrigin.C_TO_KOTLIN_BRIDGE
@@ -872,7 +872,7 @@ internal abstract class FunctionGenerationContext(
     fun extractValue(aggregate: LLVMValueRef, index: Int, name: String = ""): LLVMValueRef =
             LLVMBuildExtractValue(builder, aggregate, index, name)!!
 
-    fun gxxLandingpad(numClauses: Int, name: String = "", switchThreadState: Boolean = false, callFromCleanupBlock: Boolean = false): LLVMValueRef {
+    fun gxxLandingpad(numClauses: Int, name: String = "", switchThreadState: Boolean = false): LLVMValueRef {
         val personalityFunction = context.llvm.gxxPersonalityFunction
 
         // Type of `landingpad` instruction result (depends on personality function):
@@ -885,8 +885,7 @@ internal abstract class FunctionGenerationContext(
         }
         call(context.llvm.setCurrentFrameFunction, listOf(slotsPhi!!))
         setCurrentFrameIsCalled = true
-        if (!callFromCleanupBlock)
-            handleEpilogueForExperimentalMM(context.llvm.Kotlin_mm_safePointExceptionUnwind)
+        //handleEpilogueForExperimentalMM(context.llvm.Kotlin_mm_safePointExceptionUnwind)
 
         return landingpad
     }
@@ -1470,7 +1469,7 @@ internal abstract class FunctionGenerationContext(
 
         if (shouldHaveCleanupLandingpad) {
             appendingTo(cleanupLandingpad) {
-                val landingpad = gxxLandingpad(numClauses = 0, callFromCleanupBlock = true)
+                val landingpad = gxxLandingpad(numClauses = 0)
                 LLVMSetCleanup(landingpad, 1)
 
                 forwardingForeignExceptionsTerminatedWith?.let { terminator ->
