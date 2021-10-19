@@ -9,13 +9,10 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
 import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.analysis.checkers.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.context.findClosest
-import org.jetbrains.kotlin.fir.analysis.checkers.findClosestClassOrObject
-import org.jetbrains.kotlin.fir.analysis.checkers.getContainingClassSymbol
-import org.jetbrains.kotlin.fir.analysis.checkers.overriddenFunctions
 import org.jetbrains.kotlin.fir.analysis.checkers.syntax.FirDeclarationSyntaxChecker
-import org.jetbrains.kotlin.fir.analysis.checkers.toVisibilityOrNull
 import org.jetbrains.kotlin.fir.analysis.diagnostics.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.utils.*
@@ -23,15 +20,14 @@ import org.jetbrains.kotlin.fir.declarations.utils.isEnumClass
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSealed
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
-import org.jetbrains.kotlin.fir.resolve.ScopeSession
-import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenFunctions
-import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenProperties
-import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
+import org.jetbrains.kotlin.fir.scopes.*
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.psi.KtDeclaration
 
 object RedundantVisibilityModifierSyntaxChecker : FirDeclarationSyntaxChecker<FirDeclaration, KtDeclaration>() {
+    private val implicitVisibilityStash = mutableMapOf<FirDeclaration, Visibility>()
 
     override fun checkPsiOrLightTree(
         element: FirDeclaration,
@@ -46,9 +42,8 @@ object RedundantVisibilityModifierSyntaxChecker : FirDeclarationSyntaxChecker<Fi
             && !(element is FirPropertyAccessor && element.visibility == context.containingPropertyVisibility)
         ) return
 
-        val visibilityModifier = source.treeStructure.visibilityModifier(source.lighterASTNode)
-        val explicitVisibility = (visibilityModifier?.tokenType as? KtModifierKeywordToken)?.toVisibilityOrNull()
-        val implicitVisibility = element.implicitVisibility(context)
+        val explicitVisibility = source.explicitVisibility
+        val implicitVisibility = element.getImplicitVisibility(context)
         val containingMemberDeclaration = context.findClosest<FirMemberDeclaration>()
 
         val isHidden = explicitVisibility.isEffectivelyHiddenBy(containingMemberDeclaration)
@@ -57,31 +52,50 @@ object RedundantVisibilityModifierSyntaxChecker : FirDeclarationSyntaxChecker<Fi
             return
         }
 
-        if (element.isPublicOverriddenWithNonPublicBase(containingMemberDeclaration, context)) {
+        if (element is FirProperty && element.canMakeSetterMoreAccessible(context)) {
             return
         }
 
         reporter.reportOn(source, FirErrors.REDUNDANT_VISIBILITY_MODIFIER, context)
     }
 
-    private fun FirDeclaration.isPublicOverriddenWithNonPublicBase(
-        container: FirMemberDeclaration?,
-        context: CheckerContext,
-    ): Boolean {
-        if (container !is FirClass) {
+    private fun FirProperty.canMakeSetterMoreAccessible(context: CheckerContext): Boolean {
+        if (!isOverride) {
             return false
         }
 
-        val scope = container.unsubstitutedScope(context.session, ScopeSession(), false)
-
-        val overridden = when (this) {
-            is FirProperty -> scope.getDirectOverriddenProperties(symbol)
-            is FirSimpleFunction -> scope.getDirectOverriddenFunctions(symbol)
-            else -> return false
+        if (!hasSetterWithImplicitVisibility) {
+            return false
         }
 
-        return overridden.any { it.visibility != Visibilities.Public }
+        val theSetter = setter ?: return false
+
+        val setterImplicitVisibility = context.withDeclaration(this) {
+            theSetter.implicitVisibility(context)
+        }.also {
+            implicitVisibilityStash[theSetter] = it
+        }
+
+        return setterImplicitVisibility != visibility
     }
+
+    private val FirProperty.hasSetterWithImplicitVisibility: Boolean
+        get() {
+            val theSetter = setter ?: return false
+
+            if (source?.lighterASTNode == theSetter.source?.lighterASTNode) {
+                return true
+            }
+
+            val theSource = theSetter.source ?: return true
+            return theSource.explicitVisibility == null
+        }
+
+    private val FirSourceElement.explicitVisibility: Visibility?
+        get() {
+            val visibilityModifier = treeStructure.visibilityModifier(lighterASTNode)
+            return (visibilityModifier?.tokenType as? KtModifierKeywordToken)?.toVisibilityOrNull()
+        }
 
     private fun Visibility?.isEffectivelyHiddenBy(declaration: FirMemberDeclaration?): Boolean {
         val containerVisibility = declaration?.effectiveVisibility?.toVisibility() ?: return false
@@ -94,9 +108,17 @@ object RedundantVisibilityModifierSyntaxChecker : FirDeclarationSyntaxChecker<Fi
         return difference > 0
     }
 
+    private fun FirDeclaration.getImplicitVisibility(context: CheckerContext): Visibility {
+        return implicitVisibilityStash.remove(this) ?: implicitVisibility(context)
+    }
+
     private fun FirDeclaration.implicitVisibility(context: CheckerContext): Visibility {
         return when {
-            this is FirPropertyAccessor && isSetter && status.isOverride -> this.visibility
+            this is FirPropertyAccessor
+                    && isSetter
+                    && context.containingDeclarations.size >= 2
+                    && context.containingDeclarations.asReversed()[1] is FirClass
+                    && propertySymbol?.isOverride == true -> findPropertyAccessorVisibility(this, context)
 
             this is FirPropertyAccessor -> {
                 context.findClosest<FirProperty>()?.visibility ?: Visibilities.DEFAULT_VISIBILITY
@@ -118,23 +140,76 @@ object RedundantVisibilityModifierSyntaxChecker : FirDeclarationSyntaxChecker<Fi
                     && context.containingDeclarations.last() is FirClass
                     && this.isOverride -> findFunctionVisibility(this, context)
 
+            this is FirProperty
+                    && context.containingDeclarations.last() is FirClass
+                    && this.isOverride -> findPropertyVisibility(this, context)
+
             else -> Visibilities.DEFAULT_VISIBILITY
+        }
+    }
+
+    private fun findBiggestVisibility(
+        processSymbols: ((FirCallableSymbol<*>) -> ProcessorAction) -> Unit
+    ): Visibility {
+        var current: Visibility = Visibilities.Private
+
+        processSymbols {
+            val difference = Visibilities.compare(current, it.visibility)
+
+            if (difference != null && difference < 0) {
+                current = it.visibility
+            }
+
+            ProcessorAction.NEXT
+        }
+
+        return current
+    }
+
+    private fun findPropertyAccessorVisibility(accessor: FirPropertyAccessor, context: CheckerContext): Visibility {
+        val containingClass = context.findClosestClassOrObject()?.symbol ?: return Visibilities.Public
+        val propertySymbol = accessor.propertySymbol ?: return Visibilities.Public
+
+        val scope = containingClass.unsubstitutedScope(
+            context.sessionHolder.session,
+            context.sessionHolder.scopeSession,
+            withForcedTypeCalculator = false
+        )
+
+        return findBiggestVisibility { checkVisibility ->
+            scope.processOverriddenProperties(propertySymbol) { property ->
+                val setter = property.setterSymbol ?: return@processOverriddenProperties ProcessorAction.NEXT
+                checkVisibility(setter)
+            }
+        }
+    }
+
+    private fun findPropertyVisibility(property: FirProperty, context: CheckerContext): Visibility {
+        val containingClass = context.findClosestClassOrObject()?.symbol ?: return Visibilities.Public
+
+        val scope = containingClass.unsubstitutedScope(
+            context.sessionHolder.session,
+            context.sessionHolder.scopeSession,
+            withForcedTypeCalculator = false
+        )
+
+        return findBiggestVisibility {
+            scope.processOverriddenProperties(property.symbol, it)
         }
     }
 
     private fun findFunctionVisibility(function: FirSimpleFunction, context: CheckerContext): Visibility {
         val currentClassSymbol = context.findClosestClassOrObject()?.symbol ?: return Visibilities.Unknown
-        val overriddenFunctions = function.overriddenFunctions(currentClassSymbol, context)
-        var visibility: Visibility = Visibilities.Private
-        for (func in overriddenFunctions) {
-            val currentVisibility = func.visibility
-            val compareResult = Visibilities.compare(currentVisibility, visibility)
-            if (compareResult != null && compareResult > 0) {
-                visibility = currentVisibility
-            }
-        }
 
-        return visibility
+        val scope = currentClassSymbol.unsubstitutedScope(
+            context.sessionHolder.session,
+            context.sessionHolder.scopeSession,
+            withForcedTypeCalculator = false
+        )
+
+        return findBiggestVisibility {
+            scope.processOverriddenFunctions(function.symbol, it)
+        }
     }
 
     private val CheckerContext.containingPropertyVisibility

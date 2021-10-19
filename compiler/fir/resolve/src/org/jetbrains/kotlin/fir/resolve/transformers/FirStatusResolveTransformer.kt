@@ -442,10 +442,17 @@ abstract class AbstractFirStatusResolveTransformer(
     private fun transformPropertyAccessor(
         propertyAccessor: FirPropertyAccessor,
         containingProperty: FirProperty,
+        overriddenExtractor: () -> List<FirResolvedDeclarationStatus> = { emptyList() }
     ) {
         propertyAccessor.transformStatus(
             this,
-            statusResolver.resolveStatus(propertyAccessor, containingClass, containingProperty, isLocal = false)
+            statusResolver.resolveStatus(
+                propertyAccessor,
+                containingClass,
+                containingProperty,
+                isLocal = false,
+                overriddenExtractor
+            )
         )
 
         propertyAccessor.transformValueParameters(this, null)
@@ -474,10 +481,25 @@ abstract class AbstractFirStatusResolveTransformer(
         property: FirProperty,
         data: FirResolvedDeclarationStatus?
     ): FirStatement {
-        property.transformStatus(this, statusResolver.resolveStatus(property, containingClass, isLocal = false))
+        val overridden = statusResolver.getOverriddenProperties(property, containingClass) { it }
+
+        val overriddenProperties = overridden.map {
+            it.ensureResolved(FirResolvePhase.STATUS)
+            it.status as FirResolvedDeclarationStatus
+        }
+
+        val overriddenSetters = overridden.mapNotNull {
+            it.setter?.ensureResolved(FirResolvePhase.STATUS)
+            it.setter?.status as? FirResolvedDeclarationStatus
+        }
+
+        property.transformStatus(
+            this,
+            statusResolver.resolveStatus(property, containingClass, isLocal = false) { overriddenProperties }
+        )
 
         property.getter?.let { transformPropertyAccessor(it, property) }
-        property.setter?.let { transformPropertyAccessor(it, property) }
+        property.setter?.let { transformPropertyAccessor(it, property) { overriddenSetters } }
 
         property.backingField?.let {
             it.transformStatus(
