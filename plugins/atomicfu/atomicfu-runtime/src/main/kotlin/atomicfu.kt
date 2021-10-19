@@ -115,8 +115,8 @@ internal inline fun atomicfu_addAndGet(value: Long, `atomicfu$getter`: () -> Lon
 }
 
 internal inline fun <T> atomicfu_loop(action: (T) -> Unit, `atomicfu$getter`: () -> T, `atomicfu$setter`: (T) -> Unit): Nothing {
-    val cur = `atomicfu$getter`()
     while (true) {
+        val cur = `atomicfu$getter`()
         action(cur)
     }
 }
