@@ -792,9 +792,14 @@ class ExpressionCodegen(
     private fun handleIntVariableSpecialCases(expression: IrSetValue): Boolean {
         if (expression.symbol.owner.type.isInt()) {
             when (expression.origin) {
-                IrStatementOrigin.PREFIX_INCR, IrStatementOrigin.PREFIX_DECR -> {
+                IrStatementOrigin.PREFIX_INCR, IrStatementOrigin.PREFIX_DECR,
+                IrStatementOrigin.POSTFIX_INCR, IrStatementOrigin.POSTFIX_DECR -> {
                     expression.markLineNumber(startOffset = true)
-                    mv.iinc(findLocalIndex(expression.symbol), if (expression.origin == IrStatementOrigin.PREFIX_INCR) 1 else -1)
+                    val origin = expression.origin
+                    mv.iinc(
+                        findLocalIndex(expression.symbol),
+                        if (origin == IrStatementOrigin.PREFIX_INCR || origin == IrStatementOrigin.POSTFIX_INCR) 1 else -1
+                    )
                     return true
                 }
                 IrStatementOrigin.PLUSEQ, IrStatementOrigin.MINUSEQ -> {
