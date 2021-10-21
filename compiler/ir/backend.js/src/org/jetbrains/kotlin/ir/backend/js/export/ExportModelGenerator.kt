@@ -225,7 +225,7 @@ class ExportModelGenerator(
         // TODO: Handle non-exported super types
 
         val superType = klass.superTypes
-            .firstOrNull { !it.classifierOrFail.isInterface && !it.isAny() }
+            .firstOrNull { !it.classifierOrFail.isInterface && it.canBeUsedAsSuperTypeOfExportedClasses() }
             ?.let { exportType(it).takeIf { it !is ExportedType.ErrorType } }
 
         val superInterfaces = klass.superTypes
@@ -269,6 +269,9 @@ class ExportModelGenerator(
             ir = klass
         )
     }
+
+    private fun IrType.canBeUsedAsSuperTypeOfExportedClasses(): Boolean =
+        !this.isAny() && classifierOrNull != context.irBuiltIns.enumClass
 
     private fun exportTypeArgument(type: IrTypeArgument): ExportedType {
         if (type is IrTypeProjection)
@@ -327,7 +330,6 @@ class ExportModelGenerator(
 
                 when (klass.kind) {
                     ClassKind.ANNOTATION_CLASS,
-                    ClassKind.ENUM_CLASS,
                     ClassKind.ENUM_ENTRY ->
                         ExportedType.ErrorType("Class $name with kind: ${klass.kind}")
 
@@ -335,6 +337,7 @@ class ExportModelGenerator(
                         ExportedType.TypeOf(name)
 
                     ClassKind.CLASS,
+                    ClassKind.ENUM_CLASS,
                     ClassKind.INTERFACE -> ExportedType.ClassType(
                         name,
                         type.arguments.map { exportTypeArgument(it) }
