@@ -68,7 +68,9 @@ abstract class IrNamerBase : IrNamer {
 
     override fun getNameForProperty(property: IrProperty): JsName {
         return if (property.parent is IrClass) {
-            property.getJsNameOrKotlinName().asString().toJsName()
+            val name = property.overriddenSymbols.firstNotNullOfOrNull { it.owner.getJsName() }
+                ?: property.getJsNameOrKotlinName().asString()
+            name.toJsName()
         } else {
             getNameForStaticDeclaration(property)
         }
