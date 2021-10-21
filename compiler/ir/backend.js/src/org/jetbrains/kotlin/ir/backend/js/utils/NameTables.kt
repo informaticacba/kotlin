@@ -20,9 +20,9 @@ import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
-import org.jetbrains.kotlin.js.naming.isES5IdentifierPart
-import org.jetbrains.kotlin.js.naming.isES5IdentifierStart
-import org.jetbrains.kotlin.js.naming.isValidES5Identifier
+import org.jetbrains.kotlin.js.common.isES5IdentifierPart
+import org.jetbrains.kotlin.js.common.isES5IdentifierStart
+import org.jetbrains.kotlin.js.common.isValidES5Identifier
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.util.*
@@ -386,22 +386,25 @@ class LocalNameGenerator(val variableNames: NameTable<IrDeclaration>) : IrElemen
     }
 }
 
-
 fun sanitizeName(name: String): String {
     if (name.isValidES5Identifier()) return name
     if (name.isEmpty()) return "_"
 
     val builder = StringBuilder()
 
-    val first = name.first().let { if (it.isES5IdentifierStart()) it else '_' }
+    val first = name.first().let { if (it.isES5IdentifierStart()) it else it.mangle() }
     builder.append(first)
 
     for (idx in 1..name.lastIndex) {
         val c = name[idx]
-        builder.append(if (c.isES5IdentifierPart()) c else '_')
+        builder.append(if (c.isES5IdentifierPart()) c else c.mangle())
     }
 
     return builder.toString()
+}
+
+private fun Char.mangle(): String {
+    return "$$code$"
 }
 
 private const val SYNTHETIC_LOOP_LABEL = "\$l\$loop"
