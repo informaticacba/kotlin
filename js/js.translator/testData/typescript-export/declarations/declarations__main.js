@@ -22,6 +22,11 @@ var _valCustomWithField = JS_TESTS.foo._valCustomWithField;
 var A4 = JS_TESTS.foo.A4;
 var O = JS_TESTS.foo.O;
 var takesO = JS_TESTS.foo.takesO;
+var KT_37829 = JS_TESTS.foo.KT_37829;
+var TestSealed = JS_TESTS.foo.TestSealed;
+var TestAbstract = JS_TESTS.foo.TestAbstract;
+var TestDataClass = JS_TESTS.foo.TestDataClass;
+var TestEnumClass = JS_TESTS.foo.TestEnumClass;
 function assert(condition) {
     if (!condition) {
         throw "Assertion failed";
@@ -80,5 +85,28 @@ function box() {
     assert(O.x === 10);
     assert(O.foo() === 20);
     assert(takesO(O) === 30);
+    assert(KT_37829.Companion.x == 10);
+    assert(new TestSealed.AA().name == "AA");
+    assert(new TestSealed.AA().bar() == "bar");
+    assert(new TestSealed.BB().name == "BB");
+    assert(new TestSealed.BB().baz() == "baz");
+    assert(new TestAbstract.AA().name == "AA");
+    assert(new TestAbstract.AA().bar() == "bar");
+    assert(new TestAbstract.BB().name == "BB");
+    assert(new TestAbstract.BB().baz() == "baz");
+    assert(new TestDataClass.Nested().prop == "hello");
+    assert(TestEnumClass.A.foo == 0);
+    assert(TestEnumClass.B.foo == 1);
+    assert(TestEnumClass.A.bar("aBar") == "aBar");
+    assert(TestEnumClass.B.bar("bBar") == "bBar");
+    assert(TestEnumClass.A.bay() == "A");
+    assert(TestEnumClass.B.bay() == "B");
+    assert(TestEnumClass.A.constructorParameter == "aConstructorParameter");
+    assert(TestEnumClass.B.constructorParameter == "bConstructorParameter");
+    assert(TestEnumClass.valueOf("A") === TestEnumClass.A);
+    assert(TestEnumClass.valueOf("B") === TestEnumClass.B);
+    assert(TestEnumClass.values().indexOf(TestEnumClass.A) != -1);
+    assert(TestEnumClass.values().indexOf(TestEnumClass.B) != -1);
+    assert(new TestEnumClass.Nested().prop == "hello2");
     return "OK";
 }
