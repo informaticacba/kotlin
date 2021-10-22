@@ -424,7 +424,7 @@ class IrModuleToJsTransformer(
                     if (jsQualifier == null)
                         internalName.makeRef()
                     else
-                        jsElementAccess(jsQualifier, internalName.makeRef())
+                        JsNameRef(jsQualifier, internalName.makeRef())
             } else {
                 qualifiedReference = JsNameRef(jsQualifier!!)
             }
