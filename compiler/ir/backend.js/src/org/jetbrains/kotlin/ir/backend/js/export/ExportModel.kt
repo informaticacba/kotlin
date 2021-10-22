@@ -50,6 +50,7 @@ class ExportedProperty(
     val isProtected: Boolean,
     val irGetter: IrFunction?,
     val irSetter: IrFunction?,
+    val exportedObject: ExportedClass? = null,
 ) : ExportedDeclaration()
 
 
