@@ -12,7 +12,7 @@ external class B: A {
 }
 
 fun box(): String {
-    val c = js("{ __name: 'Frodo', bar: function() { return 'Frodo' } }")
+    val c = js("{ __name: 'Frodo', bar: function() { return 'Baggins' } }")
 
     val a: A = c
     val b: B = c
@@ -23,11 +23,11 @@ fun box(): String {
     assertEquals(b.name, "Frodo")
     assertEquals(b.asDynamic().__name, "Frodo")
 
-    assertEquals(a.foo(), "Frodo")
-    assertEquals(a.asDynamic().bar(), "Frodo")
+    assertEquals(a.foo(), "Baggins")
+    assertEquals(a.asDynamic().bar(), "Baggins")
 
-    assertEquals(b.foo(), "Frodo")
-    assertEquals(b.asDynamic().bar(), "Frodo")
+    assertEquals(b.foo(), "Baggins")
+    assertEquals(b.asDynamic().bar(), "Baggins")
 
     return "OK"
 }

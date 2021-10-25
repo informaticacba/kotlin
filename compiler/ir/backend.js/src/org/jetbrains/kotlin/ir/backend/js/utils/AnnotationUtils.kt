@@ -57,7 +57,7 @@ fun IrAnnotationContainer.isJsNativeSetter(): Boolean = hasAnnotation(JsAnnotati
 
 fun IrAnnotationContainer.isJsNativeInvoke(): Boolean = hasAnnotation(JsAnnotations.jsNativeInvoke)
 
-fun IrDeclarationWithName.getJsNameOfOverridden(): String? {
+fun IrDeclarationWithName.getJsNameForOverriddenDeclaration(): String? {
     val jsName = getJsName()
 
     return when {
@@ -69,7 +69,7 @@ fun IrDeclarationWithName.getJsNameOfOverridden(): String? {
 }
 
 fun IrDeclarationWithName.getJsNameOrKotlinName(): Name =
-    when (val jsName = getJsNameOfOverridden()) {
+    when (val jsName = getJsNameForOverriddenDeclaration()) {
         null -> name
         else -> Name.identifier(jsName)
     }
