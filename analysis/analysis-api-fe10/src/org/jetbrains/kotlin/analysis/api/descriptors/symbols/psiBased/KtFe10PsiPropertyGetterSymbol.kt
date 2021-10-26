@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisFacade.AnalysisMode
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.ktVisibility
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtType
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtTypeAndAnnotations
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.pointers.KtFe10NeverRestoringSymbolPointer
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.*
@@ -18,7 +17,6 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtTypeAndAnnotations
 import org.jetbrains.kotlin.analysis.api.symbols.pointers.KtPsiBasedSymbolPointer
 import org.jetbrains.kotlin.analysis.api.symbols.pointers.KtSymbolPointer
-import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.withValidityAssertion
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyGetterDescriptor
@@ -75,16 +73,6 @@ internal class KtFe10PsiPropertyGetterSymbol(
             return when {
                 descriptor != null -> descriptor.extensionReceiverParameter?.type?.toKtTypeAndAnnotations(analysisSession)
                 !psi.property.isTopLevel -> createErrorTypeAndAnnotations()
-                else -> null
-            }
-        }
-
-    override val dispatchType: KtType?
-        get() = withValidityAssertion {
-            val descriptor = this.descriptor
-            return when {
-                descriptor != null -> descriptor.dispatchReceiverParameter?.type?.toKtType(analysisSession)
-                !psi.property.isTopLevel -> createErrorType()
                 else -> null
             }
         }
