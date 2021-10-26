@@ -1032,6 +1032,16 @@ class GeneralKotlin2JsGradlePluginIT : BaseGradleIT() {
     }
 
     @Test
+    fun testYarnLockStore() = with(transformProjectWithPluginsDsl("cleanTask")) {
+
+        build("assemble") {
+            assertSuccessful()
+            assertFileExists("kotlin-yarn.lock")
+            assert(fileInWorkingDir("kotlin-yarn.lock").readText() == fileInWorkingDir("build/js/yarn.lock").readText())
+        }
+    }
+
+    @Test
     fun testIncrementalDceDevModeOnExternalDependency() = with(transformProjectWithPluginsDsl("kotlin-js-browser-project")) {
         val libBuildscript = projectDir.resolve("lib/build.gradle.kts")
 
