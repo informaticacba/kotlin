@@ -37,7 +37,7 @@ abstract class AbstractResolveCallTest(configurator: FrontendApiTestConfigurator
 
         val actual = executeOnPooledThreadInReadAction {
             analyseForTest(expression) {
-                resolveCall(expression)?.stringRepresentation()
+                resolveCall(expression)?.let { stringRepresentation(it) }
             }
         } ?: "null"
         testServices.assertions.assertEqualsToFile(testDataFileSibling(".txt"), actual)
@@ -65,8 +65,8 @@ abstract class AbstractResolveCallTest(configurator: FrontendApiTestConfigurator
 
 }
 
-private fun KtCall.stringRepresentation(): String {
-    fun KtType.render() = substitutor.substituteOrSelf(this).asStringForDebugging().replace('/', '.')
+private fun KtAnalysisSession.stringRepresentation(call: KtCall): String {
+    fun KtType.render() = call.substitutor.substituteOrSelf(this).asStringForDebugging().replace('/', '.')
     fun Any.stringValue(): String = when (this) {
         is KtFunctionLikeSymbol -> buildString {
             append(
@@ -84,7 +84,7 @@ private fun KtCall.stringRepresentation(): String {
                 append("<extension receiver>: ${receiver.type.render()}")
                 if (valueParameters.isNotEmpty()) append(", ")
             }
-            (this@stringValue as? KtPossibleMemberSymbol)?.dispatchType?.let { dispatchReceiverType ->
+            (this@stringValue as? KtPossibleMemberSymbol)?.getDispatchReceiverType()?.let { dispatchReceiverType ->
                 append("<dispatch receiver>: ${dispatchReceiverType.render()}")
                 if (valueParameters.isNotEmpty()) append(", ")
             }
@@ -111,7 +111,7 @@ private fun KtCall.stringRepresentation(): String {
         else -> error("unexpected parameter type ${this::class}")
     }
 
-    val callInfoClass = this::class
+    val callInfoClass = call::class
     return buildString {
         append(callInfoClass.simpleName!!)
         append(":\n")
@@ -121,7 +121,7 @@ private fun KtCall.stringRepresentation(): String {
             .filter { it.name != "token" }
             .joinTo(this, separator = "\n") { parameter ->
                 val name = parameter.name!!.removePrefix("_")
-                val value = propertyByName[name]!!.javaGetter!!(this@stringRepresentation)?.stringValue()
+                val value = propertyByName[name]!!.javaGetter!!(call)?.stringValue()
                 "$name = $value"
             }
     }

@@ -9,15 +9,19 @@ import org.jetbrains.kotlin.analysis.api.components.KtBuiltinTypes
 import org.jetbrains.kotlin.analysis.api.components.KtTypeProvider
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisFacade.AnalysisMode
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.base.KtFe10Symbol
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.KtFe10DescSymbol
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.classId
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.getSymbolDescriptor
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.isInterfaceLike
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtType
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.KtFe10PsiSymbol
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.getResolutionScope
 import org.jetbrains.kotlin.analysis.api.descriptors.types.base.KtFe10Type
 import org.jetbrains.kotlin.analysis.api.descriptors.utils.PublicApproximatorConfiguration
 import org.jetbrains.kotlin.analysis.api.descriptors.utils.cached
 import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KtPossibleMemberSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.nameOrAnonymous
 import org.jetbrains.kotlin.analysis.api.tokens.ValidityToken
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -37,7 +41,6 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.NewCapturedType
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor
 import org.jetbrains.kotlin.types.typeUtil.isNothing
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.util.containingNonLocalDeclaration
 
 internal class KtFe10TypeProvider(override val analysisSession: KtFe10AnalysisSession) : KtTypeProvider() {
@@ -109,6 +112,18 @@ internal class KtFe10TypeProvider(override val analysisSession: KtFe10AnalysisSe
     override fun getAllSuperTypes(type: KtType, shouldApproximate: Boolean): List<KtType> {
         require(type is KtFe10Type)
         return TypeUtils.getAllSupertypes(type.type).map { it.toKtType(analysisSession) }
+    }
+
+    override fun getDispatchReceiverType(symbol: KtPossibleMemberSymbol): KtType? {
+        require(symbol is KtFe10Symbol)
+
+        val descriptor = when (symbol) {
+            is KtFe10DescSymbol<*> -> symbol.descriptor as? CallableDescriptor
+            is KtFe10PsiSymbol<*, *> -> symbol.descriptor as? CallableDescriptor
+            else -> error("No callable descriptor on $symbol")
+        }
+
+        return descriptor?.dispatchReceiverParameter?.type?.toKtType(analysisSession)
     }
 
     private fun areTypesCompatible(a: KotlinType, b: KotlinType): Boolean {
