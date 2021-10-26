@@ -27040,6 +27040,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             public void testForNullableIntInDownTo() throws Exception {
                 runTest("compiler/testData/codegen/box/ranges/forInDownTo/forNullableIntInDownTo.kt");
             }
+
+            @TestMetadata("kt49411.kt")
+            public void testKt49411() throws Exception {
+                runTest("compiler/testData/codegen/box/ranges/forInDownTo/kt49411.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/codegen/box/ranges/forInIndices")
