@@ -66,7 +66,9 @@ open class YarnPlugin : Plugin<Project> {
 
         project.allprojects
             .forEach {
-                it.tasks.implementing(RequiresNpmDependencies::class).all {}
+                it.afterEvaluate {
+                    it.tasks.implementing(RequiresNpmDependencies::class).all {}
+                }
             }
 
         val storeYarnLock = tasks.register("kotlinStoreYarnLock") {
