@@ -102,7 +102,8 @@ class IrElementToJsExpressionTransformer : BaseIrElementToJsNodeTransformer<JsEx
 
     override fun visitGetValue(expression: IrGetValue, context: JsGenerationContext): JsExpression {
         if (expression.symbol.owner.isThisReceiver()) return JsThisRef().withSource(expression, context)
-        return context.getNameForValueDeclaration(expression.symbol.owner).makeRef().withSource(expression, context)
+        val possibleGlobalVarRef = context.getNameForValueDeclaration(expression.symbol.owner).makeRef().withSource(expression, context)
+        return jsGlobalVarRef(possibleGlobalVarRef, context)
     }
 
     override fun visitGetObjectValue(expression: IrGetObjectValue, context: JsGenerationContext): JsExpression {

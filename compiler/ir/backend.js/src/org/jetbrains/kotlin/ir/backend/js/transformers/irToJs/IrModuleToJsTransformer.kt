@@ -133,7 +133,6 @@ class IrModuleToJsTransformer(
         refInfo: CrossModuleReferenceInfo,
         generateMainCall: Boolean = true
     ): CompilationOutputs {
-
         val nameGenerator = refInfo.withReferenceTracking(
             IrNamerImpl(newNameTables = namer, backendContext),
             modules
@@ -141,7 +140,8 @@ class IrModuleToJsTransformer(
         val staticContext = JsStaticContext(
             backendContext = backendContext,
             irNamer = nameGenerator,
-            globalNameScope = namer.globalNames
+            globalNameScope = namer.globalNames,
+            languageFeaturesContext = JsLanguageFeaturesContext(jsPolyfills)
         )
 
         val (importStatements, importedJsModules) =
@@ -220,6 +220,7 @@ class IrModuleToJsTransformer(
                 null
             }
 
+        staticContext.languageFeaturesContext.addAllNeededPolyfillsTo(jsCode)
         program.accept(JsToStringGenerationVisitor(jsCode, sourceMapBuilderConsumer ?: NoOpSourceLocationConsumer))
 
         return CompilationOutputs(

@@ -117,7 +117,8 @@ class IrModuleToJsTransformerTmp(
         val staticContext = JsStaticContext(
             backendContext = backendContext,
             irNamer = nameGenerator,
-            globalNameScope = namer.globalNames
+            globalNameScope = namer.globalNames,
+            languageFeaturesContext = JsLanguageFeaturesContext(jsPolyfills)
         )
 
         val result = JsIrProgramFragment(file.fqName.asString())

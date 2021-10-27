@@ -20,6 +20,8 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.js.backend.ast.*
+import org.jetbrains.kotlin.js.common.JsLanguageFeature
+import org.jetbrains.kotlin.js.naming.isValidES5Identifier
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.addIfNotNull
 
@@ -27,6 +29,21 @@ fun jsVar(name: JsName, initializer: IrExpression?, context: JsGenerationContext
     val jsInitializer = initializer?.accept(IrElementToJsExpressionTransformer(), context)
     return JsVars(JsVars.JsVar(name, jsInitializer))
 }
+
+fun jsElementAccess(name: String, receiver: JsExpression?): JsExpression =
+    if (receiver == null || name.isValidES5Identifier()) {
+        JsNameRef(JsName(name, false), receiver)
+    } else {
+        JsArrayAccess(receiver, JsStringLiteral(name))
+    }
+
+fun jsGlobalVarRef(ref: JsNameRef, context: JsGenerationContext): JsExpression =
+    if (ref.qualifier != null || ref.ident.isValidES5Identifier()) {
+        ref
+    } else {
+        jsElementAccess(ref.ident, JsNameRef("globalThis"))
+            .also { context.staticContext.languageFeaturesContext.requestFeature(JsLanguageFeature.GLOBAL_THIS) }
+    }
 
 fun <T : JsNode> IrWhen.toJsNode(
     tr: BaseIrElementToJsNodeTransformer<T, JsGenerationContext>,

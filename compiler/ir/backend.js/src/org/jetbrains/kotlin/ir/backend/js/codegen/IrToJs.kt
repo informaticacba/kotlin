@@ -164,7 +164,8 @@ class IrToJs(
         val staticContext = JsStaticContext(
             backendContext = backendContext,
             irNamer = nameGenerator,
-            globalNameScope = nameGenerator.staticNames
+            globalNameScope = nameGenerator.staticNames,
+            languageFeaturesContext = JsLanguageFeaturesContext(jsPolyfills)
         )
 
         val declarationStatements: List<JsStatement> = unit.packageFragments.flatMap {
