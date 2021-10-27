@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.targets.js.yarn
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.BasePlugin
+import org.jetbrains.kotlin.gradle.plugin.whenEvaluated
 import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.RequiresNpmDependencies
@@ -66,8 +67,15 @@ open class YarnPlugin : Plugin<Project> {
 
         project.allprojects
             .forEach {
-                it.afterEvaluate {
+                val fn: (Project) -> Unit = {
                     it.tasks.implementing(RequiresNpmDependencies::class).all {}
+                }
+                if (it.state.executed) {
+                    fn(it)
+                } else {
+                    it.afterEvaluate {
+                        fn(it)
+                    }
                 }
             }
 
