@@ -98,5 +98,15 @@ declare namespace JS_TESTS {
                 readonly prop: string;
             }
         }
+        interface TestInterface {
+            readonly value: string;
+            getOwnerName(): string;
+        }
+        class TestInterfaceImpl implements foo.TestInterface {
+            constructor(value: string);
+            readonly value: string;
+            getOwnerName(): string;
+        }
+        function processInterface(test: foo.TestInterface): string;
     }
 }

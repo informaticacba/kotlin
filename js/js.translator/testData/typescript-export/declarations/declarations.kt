@@ -164,3 +164,19 @@ data class TestDataClass(val name: String) {
         val prop: String = "hello"
     }
 }
+
+@JsExport
+interface TestInterface {
+    val value: String
+    fun getOwnerName(): String
+}
+
+@JsExport
+class TestInterfaceImpl(override val value: String) : TestInterface {
+    override fun getOwnerName() = "TestInterfaceImpl"
+}
+
+@JsExport
+fun processInterface(test: TestInterface): String {
+    return "Owner ${test.getOwnerName()} has value '${test.value}'"
+}

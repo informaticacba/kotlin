@@ -101,7 +101,6 @@ fun ExportedDeclaration.toTypeScript(indent: String, prefix: String = ""): Strin
     is ExportedClass -> {
         val keyword = if (isInterface) "interface" else "class"
         val superInterfacesKeyword = if (isInterface) "extends" else "implements"
-
         val superClassClause = superClass?.let { " extends ${it.toTypeScript(indent)}" } ?: ""
         val superInterfacesClause = if (superInterfaces.isNotEmpty()) {
             " $superInterfacesKeyword " + superInterfaces.joinToString(", ") { it.toTypeScript(indent) }
