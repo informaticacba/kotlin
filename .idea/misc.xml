@@ -48,7 +48,7 @@
     </option>
     <option name="myNotNulls">
       <value>
-        <list size="15">
+        <list size="14">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
           <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
           <item index="2" class="java.lang.String" itemvalue="javax.validation.constraints.NotNull" />
