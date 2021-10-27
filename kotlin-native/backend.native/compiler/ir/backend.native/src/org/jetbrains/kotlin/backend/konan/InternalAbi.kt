@@ -77,6 +77,9 @@ internal class InternalAbi(private val context: Context) {
         fun getEnumValuesAccessorName(enum: IrClass): Name =
                 getMangledNameFor("getValues", enum)
 
+        fun getInnerClassOuterThisAccessorName(companion: IrClass): Name =
+                getMangledNameFor("outerThis", companion)
+
         /**
          * Generate name for declaration that will be a part of internal ABI.
          */
