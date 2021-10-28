@@ -1918,7 +1918,7 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
     @Nested
     @TestMetadata("js/js.translator/testData/box/escapedIdentifiers")
     @TestDataPath("$PROJECT_ROOT")
-    public static class EscapedIdentifiers extends AbstractBoxJsTest {
+    public class EscapedIdentifiers {
         @Test
         public void testAllFilesPresentInEscapedIdentifiers() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("js/js.translator/testData/box/escapedIdentifiers"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.JS, true);
