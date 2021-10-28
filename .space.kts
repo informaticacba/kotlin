@@ -7,6 +7,11 @@ job("warmup data") {
         }
     }
 
+    git {
+        // fetch the entire commit history
+        depth = UNLIMITED_DEPTH
+    }
+
     warmup(profileId = "default") {
         requirements {
             workerTags("fleet")
