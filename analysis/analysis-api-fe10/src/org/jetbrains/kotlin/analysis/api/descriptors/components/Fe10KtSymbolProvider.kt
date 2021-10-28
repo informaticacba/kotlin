@@ -35,8 +35,12 @@ internal class Fe10KtSymbolProvider(
         return Fe10FileKtSymbol(psi, analysisContext)
     }
 
-    override fun getParameterSymbol(psi: KtParameter): KtValueParameterSymbol = withValidityAssertion {
-        return Fe10PsiKtValueParameterSymbol(psi, analysisContext)
+    override fun getParameterSymbol(psi: KtParameter): KtVariableLikeSymbol = withValidityAssertion {
+        return when {
+            psi.isFunctionTypeParameter -> error("Function type parameters are not supported in getParameterSymbol()")
+            psi.isLoopParameter -> Fe10PsiLoopParameterKtLocalVariableSymbol(psi, analysisContext)
+            else -> Fe10PsiKtValueParameterSymbol(psi, analysisContext)
+        }
     }
 
     override fun getFunctionLikeSymbol(psi: KtNamedFunction): KtFunctionLikeSymbol = withValidityAssertion {
