@@ -1,4 +1,4 @@
-job("warmup data") {
+job("Warmup data") {
     startOn {
         // run on schedule every day at 5AM
         schedule {
