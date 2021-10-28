@@ -410,7 +410,7 @@ fun sanitizeName(name: String): String {
     return if (postfixBuilder.isEmpty()) {
         builder.toString()
     } else {
-        "${builder}_${postfixBuilder.toString().hashCode()}"
+        "${builder}_${postfixBuilder.toString().hashCode().toUInt()}"
     }
 }
 
