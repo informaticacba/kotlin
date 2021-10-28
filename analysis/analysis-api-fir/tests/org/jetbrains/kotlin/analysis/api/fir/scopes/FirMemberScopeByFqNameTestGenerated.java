@@ -6,9 +6,8 @@
 package org.jetbrains.kotlin.analysis.api.fir.scopes;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.jetbrains.kotlin.test.TestMetadata;
-import org.junit.jupiter.api.Nested;
+import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -22,6 +21,18 @@ public class FirMemberScopeByFqNameTestGenerated extends AbstractFirMemberScopeB
     @Test
     public void testAllFilesPresentInMemberScopeByFqName() throws Exception {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/scopes/memberScopeByFqName"), Pattern.compile("^(.+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("ClassWithGenericBase1.kt")
+    public void testClassWithGenericBase1() throws Exception {
+        runTest("analysis/analysis-api/testData/memberScopeByFqName/ClassWithGenericBase1.kt");
+    }
+
+    @Test
+    @TestMetadata("ClassWithGenericBase2.kt")
+    public void testClassWithGenericBase2() throws Exception {
+        runTest("analysis/analysis-api/testData/memberScopeByFqName/ClassWithGenericBase2.kt");
     }
 
     @Test

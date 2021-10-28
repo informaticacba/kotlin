@@ -32,14 +32,14 @@ import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.originalConstructorIfTypeAlias
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
+import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutorByMap
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
-import org.jetbrains.kotlin.analysis.api.fir.symbols.KtFirClassInitializerSymbol
-import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutorByMap
+import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.types.Variance
@@ -210,7 +210,9 @@ internal class KtSymbolByFirBuilder private constructor(
 
         fun buildFunctionSymbol(fir: FirSimpleFunction): KtFirFunctionSymbol {
             check(fir.origin != FirDeclarationOrigin.SamConstructor)
-            return symbolsCache.cache(fir) { KtFirFunctionSymbol(fir, resolveState, token, this@KtSymbolByFirBuilder) }
+
+            val targetFir = fir.unwrapSubstitutionOverrideIfNeeded()
+            return symbolsCache.cache(targetFir) { KtFirFunctionSymbol(targetFir, resolveState, token, this@KtSymbolByFirBuilder) }
         }
 
         fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction): KtFirAnonymousFunctionSymbol {
@@ -264,8 +266,10 @@ internal class KtSymbolByFirBuilder private constructor(
         fun buildPropertySymbol(fir: FirProperty): KtKotlinPropertySymbol {
             checkRequirementForBuildingSymbol<KtKotlinPropertySymbol>(fir, !fir.isLocal)
             checkRequirementForBuildingSymbol<KtKotlinPropertySymbol>(fir, fir !is FirSyntheticProperty)
-            return symbolsCache.cache(fir) {
-                KtFirKotlinPropertySymbol(fir, resolveState, token, this@KtSymbolByFirBuilder)
+
+            val targetFir = fir.unwrapSubstitutionOverrideIfNeeded()
+            return symbolsCache.cache(targetFir) {
+                KtFirKotlinPropertySymbol(targetFir, resolveState, token, this@KtSymbolByFirBuilder)
             }
         }
 
@@ -426,11 +430,64 @@ internal class KtSymbolByFirBuilder private constructor(
                 "Cannot build ${S::class.simpleName} for ${fir.renderWithType(FirRenderer.RenderMode.WithResolvePhases)}"
             }
         }
+
+        /**
+         * We want to unwrap a substitution override only if it does not affect any of declaration's types.
+         *
+         * If the declaration references any non-own type parameter in any way, then we want to keep the substitution override.
+         */
+        private inline fun <reified D : FirCallableDeclaration> D.unwrapSubstitutionOverrideIfNeeded(): D {
+            if (origin != FirDeclarationOrigin.SubstitutionOverride) return this
+
+            return if (referencesOnlyOwnDeclaredTypeParameters()) unwrapFakeOverrides() else this
+        }
+
+        private fun FirCallableDeclaration.referencesOnlyOwnDeclaredTypeParameters(): Boolean {
+            require(origin == FirDeclarationOrigin.SubstitutionOverride)
+
+            val original = unwrapFakeOverrides()
+
+            val declaredTypeParameters = original.typeParameters.map { it.symbol.toLookupTag() }.toSet()
+            val referencedTypeParameters = mutableSetOf<ConeTypeParameterLookupTag>()
+
+            original.accept(object : FirVisitorVoid() {
+                override fun visitElement(element: FirElement) {
+                    element.acceptChildren(this)
+                }
+
+                override fun visitSimpleFunction(simpleFunction: FirSimpleFunction) {
+                    simpleFunction.typeParameters.forEach { it.accept(this) }
+
+                    simpleFunction.receiverTypeRef?.accept(this)
+                    simpleFunction.valueParameters.forEach { it.returnTypeRef.accept(this) }
+                    simpleFunction.returnTypeRef.accept(this)
+                }
+
+                override fun visitProperty(property: FirProperty) {
+                    property.receiverTypeRef?.accept(this)
+                    property.returnTypeRef.accept(this)
+                }
+
+                override fun visitResolvedTypeRef(resolvedTypeRef: FirResolvedTypeRef) {
+                    handleTypeRef(resolvedTypeRef)
+
+                    super.visitResolvedTypeRef(resolvedTypeRef)
+                    resolvedTypeRef.delegatedTypeRef?.accept(this)
+                }
+
+                private fun handleTypeRef(resolvedTypeRef: FirResolvedTypeRef) {
+                    val typeParameter = (resolvedTypeRef.type as? ConeTypeParameterType) ?: return
+                    referencedTypeParameters += typeParameter.lookupTag
+                }
+            })
+
+            return declaredTypeParameters.containsAll(referencedTypeParameters)
+        }
     }
 }
 
 
-private class BuilderCache<From, To: Any> private constructor(
+private class BuilderCache<From, To : Any> private constructor(
     private val cache: ConcurrentMap<From, To>,
     private val isReadOnly: Boolean
 ) {
