@@ -36,7 +36,7 @@ internal class Fe10DescKtSamConstructorSymbol(
         get() = withValidityAssertion { descriptor.ktHasStableParameterNames }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { descriptor.callableId }
+        get() = withValidityAssertion { descriptor.callableIdIfNotLocal }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion { descriptor.returnTypeOrNothing.toKtTypeAndAnnotations(analysisContext) }

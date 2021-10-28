@@ -64,7 +64,7 @@ internal class Fe10DescKtFunctionSymbol(
         get() = withValidityAssertion { descriptor.ktHasStableParameterNames }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { descriptor.callableId }
+        get() = withValidityAssertion { descriptor.callableIdIfNotLocal }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion { descriptor.returnTypeOrNothing.toKtTypeAndAnnotations(analysisContext) }
@@ -87,8 +87,8 @@ internal class Fe10DescKtFunctionSymbol(
             return pointerByPsi
         }
 
-        val callableId = descriptor.callableId
-        if (callableId != null && !callableId.isLocal) {
+        val callableId = descriptor.callableIdIfNotLocal
+        if (callableId != null) {
             val signature = descriptor.getSymbolPointerSignature(analysisContext)
             return Fe10DescFunctionLikeKtSymbolPointer(callableId, signature)
         }

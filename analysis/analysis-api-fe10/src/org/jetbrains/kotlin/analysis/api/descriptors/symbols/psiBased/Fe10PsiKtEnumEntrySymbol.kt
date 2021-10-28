@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisFacade.Analysis
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtTypeAndAnnotations
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.pointers.Fe10NeverRestoringKtSymbolPointer
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.Fe10PsiKtSymbol
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.callableId
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.callableIdIfNonLocal
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.createErrorTypeAndAnnotations
 import org.jetbrains.kotlin.analysis.api.descriptors.utils.cached
 import org.jetbrains.kotlin.analysis.api.symbols.KtEnumEntrySymbol
@@ -43,7 +43,7 @@ internal class Fe10PsiKtEnumEntrySymbol(
         }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { psi.callableId }
+        get() = withValidityAssertion { psi.callableIdIfNonLocal }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion {

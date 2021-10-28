@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased
 
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisContext
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.Fe10DescMemberKtSymbol
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.callableId
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.callableIdIfNotLocal
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtTypeAndAnnotations
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.pointers.Fe10NeverRestoringKtSymbolPointer
 import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
@@ -34,7 +34,7 @@ internal class Fe10DescKtJavaFieldSymbol(
         get() = withValidityAssertion { !descriptor.isVar }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { descriptor.callableId }
+        get() = withValidityAssertion { descriptor.callableIdIfNotLocal }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion { descriptor.returnType.toKtTypeAndAnnotations(analysisContext) }

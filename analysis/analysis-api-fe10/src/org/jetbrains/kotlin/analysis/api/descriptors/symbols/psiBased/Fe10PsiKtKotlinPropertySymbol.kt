@@ -95,7 +95,7 @@ internal class Fe10PsiKtKotlinPropertySymbol(
         get() = withValidityAssertion { !psi.isVar }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { psi.callableId }
+        get() = withValidityAssertion { psi.callableIdIfNonLocal }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion { descriptor?.type?.toKtTypeAndAnnotations(analysisContext) ?: createErrorTypeAndAnnotations() }
