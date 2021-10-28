@@ -73,19 +73,19 @@ class JsEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigu
         }
 
         fun getJsModuleArtifactPath(testServices: TestServices, moduleName: String): String {
-            return getJsArtifactsOutputDir(testServices).absolutePath + "/" + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
+            return getJsArtifactsOutputDir(testServices).absolutePath + File.separator + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
         }
 
         fun getJsKlibArtifactPath(testServices: TestServices, moduleName: String): String {
-            return getJsKlibOutputDir(testServices).absolutePath + "/" + getJsArtifactSimpleName(testServices, moduleName)
+            return getJsKlibOutputDir(testServices).absolutePath + File.separator + getJsArtifactSimpleName(testServices, moduleName)
         }
 
         fun getDceJsArtifactPath(testServices: TestServices, moduleName: String): String {
-            return getDceJsArtifactsOutputDir(testServices).absolutePath + "/" + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
+            return getDceJsArtifactsOutputDir(testServices).absolutePath + File.separator + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
         }
 
         fun getPirJsArtifactPath(testServices: TestServices, moduleName: String): String {
-            return getPirJsArtifactsOutputDir(testServices).absolutePath + "/" + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
+            return getPirJsArtifactsOutputDir(testServices).absolutePath + File.separator + getJsArtifactSimpleName(testServices, moduleName) + "_v5"
         }
 
         fun getJsArtifactsOutputDir(testServices: TestServices): File {
