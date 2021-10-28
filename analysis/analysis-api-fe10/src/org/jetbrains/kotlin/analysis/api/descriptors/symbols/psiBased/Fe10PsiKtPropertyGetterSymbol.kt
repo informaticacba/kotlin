@@ -63,7 +63,7 @@ internal class Fe10PsiKtPropertyGetterSymbol(
         get() = withValidityAssertion { true }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { psi.property.callableIdIfNonLocal }
+        get() = withValidityAssertion { null }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion {

@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.withValidityAssertion
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.SyntheticPropertyDescriptor
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -56,7 +57,13 @@ class Fe10DescDefaultKtPropertyGetterSymbol(
         get() = withValidityAssertion { true }
 
     override val callableIdIfNonLocal: CallableId?
-        get() = withValidityAssertion { null }
+        get() = withValidityAssertion {
+            return if (propertyDescriptor is SyntheticPropertyDescriptor) {
+                propertyDescriptor.getMethod.callableIdIfNotLocal
+            } else {
+                null
+            }
+        }
 
     override val annotatedType: KtTypeAndAnnotations
         get() = withValidityAssertion { propertyDescriptor.type.toKtTypeAndAnnotations(analysisContext) }

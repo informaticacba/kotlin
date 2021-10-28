@@ -48,11 +48,14 @@ internal class Fe10DescKtPropertySetterSymbol(
     override val callableIdIfNonLocal: CallableId?
         get() = withValidityAssertion {
             val propertyDescriptor = descriptor.correspondingProperty
-            return if (propertyDescriptor is SyntheticPropertyDescriptor) {
-                propertyDescriptor.getMethod.callableIdIfNotLocal
-            } else {
-                null
+            if (propertyDescriptor is SyntheticPropertyDescriptor) {
+                val setMethodDescriptor = propertyDescriptor.setMethod
+                if (setMethodDescriptor != null) {
+                    return setMethodDescriptor.callableIdIfNotLocal
+                }
             }
+
+            return null
         }
 
     override val parameter: KtValueParameterSymbol
