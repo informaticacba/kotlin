@@ -386,7 +386,7 @@ class LocalNameGenerator(val variableNames: NameTable<IrDeclaration>) : IrElemen
     }
 }
 
-fun sanitizeName(name: String): String {
+fun sanitizeName(name: String, withHash: Boolean = true): String {
     if (name.isValidES5Identifier()) return name
     if (name.isEmpty()) return "_"
 
@@ -401,7 +401,11 @@ fun sanitizeName(name: String): String {
         builder.append(c.mangleIfNot(Char::isES5IdentifierPart))
     }
 
-    return "${builder}_${name.hashCode().toUInt()}"
+    return if (withHash) {
+        "${builder}_${name.hashCode().toUInt()}"
+    } else {
+        builder.toString()
+    }
 }
 
 private inline fun Char.mangleIfNot(predicate: Char.() -> Boolean) =

@@ -23,7 +23,7 @@ fun wrapTypeScript(name: String, moduleKind: ModuleKind, dts: String): String {
 
     val declarationsDts = types + dts
 
-    val namespaceName = sanitizeName(name)
+    val namespaceName = sanitizeName(name, withHash = false)
 
     return when (moduleKind) {
         ModuleKind.PLAIN -> "declare namespace $namespaceName {\n$declarationsDts\n}\n"
@@ -205,7 +205,7 @@ fun ExportedClass.toReadonlyProperty(): ExportedProperty {
 }
 
 fun ExportedParameter.toTypeScript(indent: String): String =
-    "${sanitizeName(name)}: ${type.toTypeScript(indent)}"
+    "${sanitizeName(name, withHash = false)}: ${type.toTypeScript(indent)}"
 
 fun ExportedType.toTypeScript(indent: String): String = when (this) {
     is ExportedType.Primitive -> typescript
