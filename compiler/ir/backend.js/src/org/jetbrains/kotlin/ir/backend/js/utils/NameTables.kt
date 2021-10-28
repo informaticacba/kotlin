@@ -391,36 +391,21 @@ fun sanitizeName(name: String): String {
     if (name.isEmpty()) return "_"
 
     val builder = StringBuilder()
-    val postfixBuilder = StringBuilder()
 
-    val first = name.first().let {
-        it.mangleAndAddPostfixTo(postfixBuilder, Char::isES5IdentifierStart)
-    }
+    val first = name.first()
 
-    builder.append(first)
+    builder.append(first.mangleIfNot(Char::isES5IdentifierStart))
 
     for (idx in 1..name.lastIndex) {
-        val c = name[idx].let {
-            it.mangleAndAddPostfixTo(postfixBuilder, Char::isES5IdentifierPart)
-        }
-
-        builder.append(c)
+        val c = name[idx]
+        builder.append(c.mangleIfNot(Char::isES5IdentifierPart))
     }
 
-    return if (postfixBuilder.isEmpty()) {
-        builder.toString()
-    } else {
-        "${builder}_${postfixBuilder.toString().hashCode().toUInt()}"
-    }
+    return "${builder}_${name.hashCode().toUInt()}"
 }
 
-private inline fun Char.mangleAndAddPostfixTo(builder: StringBuilder, predicate: Char.() -> Boolean): Char {
-    return if (predicate()) {
-        this
-    } else {
-        '_'.also { builder.append(this) }
-    }
-}
+private inline fun Char.mangleIfNot(predicate: Char.() -> Boolean) =
+    if (predicate()) this else '_'
 
 private const val SYNTHETIC_LOOP_LABEL = "\$l\$loop"
 private const val SYNTHETIC_BLOCK_LABEL = "\$l\$block"

@@ -210,7 +210,8 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
     private fun IrSimpleFunction.generateAssignmentIfMangled(memberRef: JsExpression) {
         if (
             irClass.isExported(context.staticContext.backendContext) &&
-            visibility.isPublicAPI && hasMangledName()
+            visibility.isPublicAPI && hasMangledName() &&
+            correspondingPropertySymbol == null
         ) {
             classBlock.statements += jsAssignment(prototypeAccessRef(), memberRef).makeStmt()
         }

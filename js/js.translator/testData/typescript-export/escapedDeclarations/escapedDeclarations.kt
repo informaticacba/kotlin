@@ -4,6 +4,9 @@
 // SKIP_NODE_JS
 // IGNORE_BACKEND: JS
 // !LANGUAGE: +JsAllowInvalidCharsIdentifiersEscaping
+// INFER_MAIN_MODULE
+// MODULE: JS_TESTS
+// FILE: escapedDeclarations.kt
 
 @file:JsExport
 
