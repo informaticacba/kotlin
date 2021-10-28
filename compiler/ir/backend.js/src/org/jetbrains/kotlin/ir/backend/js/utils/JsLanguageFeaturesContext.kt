@@ -16,7 +16,7 @@ class JsLanguageFeaturesContext(val polyfills: List<JsPolyfill>) {
         output.print("// endregion\n")
     }
 
-    fun getAllNeededPolyfills() =
+    private fun getAllNeededPolyfills() =
         polyfills
             .filter { requestedFeatures.contains(it.feature) }
             .joinToString(separator = "\n", postfix = "\n") { it.getPolyfillImpl() }
