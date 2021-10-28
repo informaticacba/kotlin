@@ -221,8 +221,8 @@ fun ExportedType.toTypeScript(indent: String): String = when (this) {
     is ExportedType.TypeOf ->
         "typeof $name"
 
+    is ExportedType.TypeParameter -> name
     is ExportedType.ErrorType -> "any /*$comment*/"
-    is ExportedType.TypeParameter -> if (name.isValidES5Identifier()) name else "any"
     is ExportedType.Nullable -> "Nullable<" + baseType.toTypeScript(indent) + ">"
     is ExportedType.InlineInterfaceType -> {
         members.joinToString(prefix = "{\n", postfix = "$indent}", separator = "") { it.toTypeScript("$indent    ") + "\n" }
