@@ -6,9 +6,8 @@
 package org.jetbrains.kotlin.analysis.api.fir.scopes;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.jetbrains.kotlin.test.TestMetadata;
-import org.junit.jupiter.api.Nested;
+import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -46,5 +45,11 @@ public class FirMemberScopeByFqNameTestGenerated extends AbstractFirMemberScopeB
     @TestMetadata("MutableList.kt")
     public void testMutableList() throws Exception {
         runTest("analysis/analysis-api/testData/scopes/memberScopeByFqName/MutableList.kt");
+    }
+
+    @Test
+    @TestMetadata("overridenFunctionWithGenericBound.kt")
+    public void testOverridenFunctionWithGenericBound() throws Exception {
+        runTest("analysis/analysis-api/testData/scopes/memberScopeByFqName/overridenFunctionWithGenericBound.kt");
     }
 }
