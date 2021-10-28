@@ -58,10 +58,10 @@ internal class Fe10DescKtKotlinPropertySymbol(
         get() = withValidityAssertion { descriptor.isExplicitOverride }
 
     override val hasGetter: Boolean
-        get() = withValidityAssertion { descriptor.getter != null }
+        get() = withValidityAssertion { true }
 
     override val hasSetter: Boolean
-        get() = withValidityAssertion { descriptor.setter != null }
+        get() = withValidityAssertion { descriptor.isVar }
 
     override val callableIdIfNonLocal: CallableId?
         get() = withValidityAssertion { descriptor.callableIdIfNotLocal }
@@ -69,15 +69,19 @@ internal class Fe10DescKtKotlinPropertySymbol(
     override val initializer: KtConstantValue?
         get() = withValidityAssertion { descriptor.compileTimeInitializer?.toKtConstantValue() }
 
-    override val getter: KtPropertyGetterSymbol?
+    override val getter: KtPropertyGetterSymbol
         get() = withValidityAssertion {
-            val getter = descriptor.getter ?: return null
+            val getter = descriptor.getter ?: return Fe10DescDefaultKtPropertyGetterSymbol(descriptor, analysisContext)
             return Fe10DescKtPropertyGetterSymbol(getter, analysisContext)
         }
 
     override val setter: KtPropertySetterSymbol?
         get() = withValidityAssertion {
-            val setter = descriptor.setter ?: return null
+            if (!descriptor.isVar) {
+                return null
+            }
+
+            val setter = descriptor.setter ?: return Fe10DescDefaultKtPropertySetterSymbol(descriptor, analysisContext)
             return Fe10DescKtPropertySetterSymbol(setter, analysisContext)
         }
 
