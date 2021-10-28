@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.backend.konan.llvm.getLLVMType
 import org.jetbrains.kotlin.backend.konan.llvm.localHash
 import org.jetbrains.kotlin.backend.konan.lower.InnerClassLowering
 import org.jetbrains.kotlin.backend.konan.lower.bridgeTarget
-import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
@@ -468,21 +468,24 @@ internal class ClassLayoutBuilder(val irClass: IrClass, val context: Context, va
      * Fields declared in the class.
      */
     fun getDeclaredFields(): List<FieldInfo> {
-        val outerThisField = if (irClass.isInner) context.specialDeclarationsFactory.getOuterThisField(irClass) else null
         if (context.config.lazyIrForCaches && !context.llvmModuleSpecification.containsDeclaration(irClass)) {
             val packageFragment = irClass.findPackage()
             val moduleDescriptor = packageFragment.packageFragmentDescriptor.containingDeclaration
             if (moduleDescriptor.isFromInteropLibrary())
                 return emptyList()
+            if (irClass.isInner || irClass.visibility == DescriptorVisibilities.LOCAL)
+                error("It should be never needed to get the fields layout of a cached inner or local class: ${irClass.render()}")
             val moduleDeserializer = context.irLinker.cachedLibraryModuleDeserializers[moduleDescriptor]
                     ?: error("No module deserializer for ${irClass.render()}")
-            return moduleDeserializer.deserializeClassFields(irClass, outerThisField)
+            return moduleDeserializer.deserializeClassFields(irClass)
         }
 
-        val declarations = irClass.declarations.toMutableList()
-        outerThisField?.let {
-            if (!declarations.contains(it))
-                declarations += it
+        val declarations: List<IrDeclaration> = if (irClass.isInner && !isLowered) {
+            // Note: copying to avoid mutation of the original class.
+            irClass.declarations.toMutableList()
+                    .also { InnerClassLowering.addOuterThisField(it, irClass, context) }
+        } else {
+            irClass.declarations
         }
         return declarations.mapNotNull {
             when (it) {

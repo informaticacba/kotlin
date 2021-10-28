@@ -463,8 +463,14 @@ internal val useInternalAbiPhase = makeKonanModuleOpPhase(
                             returnType = irClass.parentAsClass.defaultType
                             origin = InternalAbi.INTERNAL_ABI_ORIGIN
                             isExternal = true
-                        }.also {
-                            context.internalAbi.reference(it, irClass.module)
+                        }.also { function ->
+                            context.internalAbi.reference(function, irClass.module)
+
+                            function.addValueParameter {
+                                name = Name.identifier("innerClass")
+                                origin = InternalAbi.INTERNAL_ABI_ORIGIN
+                                type = irClass.defaultType
+                            }
                         }
                     }
                     return IrCallImpl(
