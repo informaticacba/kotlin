@@ -152,9 +152,18 @@ class JsEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigu
         }
 
         fun getDependencies(module: TestModule, testServices: TestServices, kind: DependencyRelation): List<ModuleDescriptorImpl> {
-            val dependencies = if (kind == DependencyRelation.FriendDependency) module.friendDependencies else module.regularDependencies
-            return dependencies
-                .map { testServices.dependencyProvider.getTestModule(it.moduleName) }
+            val visited = mutableSetOf<TestModule>()
+            fun getRecursive(module: TestModule, kind: DependencyRelation) {
+                val dependencies = if (kind == DependencyRelation.FriendDependency) module.friendDependencies else module.regularDependencies
+                dependencies.map { testServices.dependencyProvider.getTestModule(it.moduleName) }.forEach {
+                    if (it !in visited) {
+                        visited += it
+                        getRecursive(it, kind)
+                    }
+                }
+            }
+            getRecursive(module, kind)
+            return visited
                 .map { testServices.dependencyProvider.getArtifact(it, ArtifactKinds.KLib).outputFile }
                 .map { testServices.jsLibraryProvider.getDescriptorByPath(it.absolutePath) }
         }
