@@ -83,6 +83,16 @@ class JavaOverrideChecker internal constructor(
         )
     }
 
+    private fun doesReturnTypesHaveSameKind(
+        candidateTypeRef: FirTypeRef,
+        baseTypeRef: FirTypeRef,
+    ): Boolean {
+        val candidateType = candidateTypeRef.toConeKotlinTypeProbablyFlexible(session, javaTypeParameterStack)
+        val baseType = baseTypeRef.toConeKotlinTypeProbablyFlexible(session, javaTypeParameterStack)
+
+        return candidateType.isPrimitiveInJava() == baseType.isPrimitiveInJava()
+    }
+
     private fun ConeKotlinType.isPrimitiveInJava(): Boolean = with(context) {
         !isNullableType() && CompilerConeAttributes.EnhancedNullability !in attributes && isPrimitiveOrNullablePrimitive
     }
@@ -176,6 +186,9 @@ class JavaOverrideChecker internal constructor(
 
         if (overrideCandidate.valueParameters.size != baseParameterTypes.size) return false
         val substitutor = buildTypeParametersSubstitutorIfCompatible(overrideCandidate, baseDeclaration)
+
+        if (!doesReturnTypesHaveSameKind(overrideCandidate.returnTypeRef, baseDeclaration.returnTypeRef)) return false
+
         return overrideCandidate.valueParameters.zip(baseParameterTypes).all { (paramFromJava, baseType) ->
             isEqualTypes(paramFromJava.returnTypeRef, baseType, substitutor)
         }
