@@ -234,8 +234,10 @@ class K2Native : CLICompiler<K2NativeCompilerArguments>() {
 
                 val memoryModelFromArgument = when (arguments.memoryModel) {
                     "relaxed" -> {
-                        configuration.report(STRONG_WARNING, "Relaxed memory model is not yet fully functional")
-                        MemoryModel.RELAXED
+                        configuration.report(ERROR,
+                                "Relaxed memory model is deprecated and isn't expected to work right way with current Kotlin version." +
+                                        " Use strict as default. ")
+                        MemoryModel.STRICT
                     }
                     "strict" -> MemoryModel.STRICT
                     "experimental" -> MemoryModel.EXPERIMENTAL
