@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.analysis.api.descriptors.scopes
 
 import org.jetbrains.kotlin.analysis.api.ValidityTokenOwner
+import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisContext
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtSymbol
@@ -24,7 +25,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 
 internal abstract class KtFe10ScopeResolution : KtScope, ValidityTokenOwner {
-    abstract val analysisSession: KtFe10AnalysisSession
+    abstract val analysisContext: Fe10AnalysisContext
     abstract val scope: ResolutionScope
 
     override fun getCallableSymbols(nameFilter: KtScopeNameFilter): Sequence<KtCallableSymbol> = withValidityAssertion {
@@ -32,7 +33,7 @@ internal abstract class KtFe10ScopeResolution : KtScope, ValidityTokenOwner {
             .getContributedDescriptors(kindFilter = DescriptorKindFilter.ALL, nameFilter)
             .asSequence()
             .filter { nameFilter(it.name) }
-            .mapNotNull { it.toKtSymbol(analysisSession) as? KtCallableSymbol }
+            .mapNotNull { it.toKtSymbol(analysisContext) as? KtCallableSymbol }
     }
 
     override fun getClassifierSymbols(nameFilter: KtScopeNameFilter): Sequence<KtClassifierSymbol> = withValidityAssertion {
@@ -40,7 +41,7 @@ internal abstract class KtFe10ScopeResolution : KtScope, ValidityTokenOwner {
             .getContributedDescriptors(kindFilter = DescriptorKindFilter.CLASSIFIERS, nameFilter)
             .asSequence()
             .filter { nameFilter(it.name) }
-            .mapNotNull { it.toKtSymbol(analysisSession) as? KtClassifierSymbol }
+            .mapNotNull { it.toKtSymbol(analysisContext) as? KtClassifierSymbol }
     }
 
     override fun getConstructors(): Sequence<KtConstructorSymbol> = withValidityAssertion {
@@ -48,16 +49,16 @@ internal abstract class KtFe10ScopeResolution : KtScope, ValidityTokenOwner {
             .getContributedDescriptors(kindFilter = DescriptorKindFilter.FUNCTIONS)
             .asSequence()
             .filterIsInstance<ConstructorDescriptor>()
-            .map { it.toKtConstructorSymbol(analysisSession) }
+            .map { it.toKtConstructorSymbol(analysisContext) }
     }
 
     override val token: ValidityToken
-        get() = analysisSession.token
+        get() = analysisContext.token
 }
 
 internal open class KtFe10ScopeLexical(
     override val scope: LexicalScope,
-    override val analysisSession: KtFe10AnalysisSession
+    override val analysisContext: Fe10AnalysisContext
 ) : KtFe10ScopeResolution(), ValidityTokenOwner {
     override fun getPossibleCallableNames(): Set<Name> = withValidityAssertion {
         return emptySet()
@@ -70,7 +71,7 @@ internal open class KtFe10ScopeLexical(
 
 internal open class KtFe10ScopeMember(
     override val scope: MemberScope,
-    override val analysisSession: KtFe10AnalysisSession
+    override val analysisContext: Fe10AnalysisContext
 ) : KtFe10ScopeResolution(), ValidityTokenOwner {
     override fun getPossibleCallableNames(): Set<Name> = withValidityAssertion {
         return scope.getFunctionNames() + scope.getVariableNames()

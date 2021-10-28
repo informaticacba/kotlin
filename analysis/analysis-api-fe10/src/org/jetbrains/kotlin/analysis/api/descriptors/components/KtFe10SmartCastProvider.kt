@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.analysis.api.ImplicitReceiverSmartCast
 import org.jetbrains.kotlin.analysis.api.ImplicitReceiverSmartcastKind
 import org.jetbrains.kotlin.analysis.api.components.KtSmartCastProvider
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
+import org.jetbrains.kotlin.analysis.api.descriptors.components.base.Fe10KtAnalysisSessionComponent
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.base.toKtType
 import org.jetbrains.kotlin.analysis.api.tokens.ValidityToken
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -18,30 +19,32 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.smartcasts.MultipleSmartCasts
 import org.jetbrains.kotlin.types.TypeIntersector
 
-internal class KtFe10SmartCastProvider(override val analysisSession: KtFe10AnalysisSession) : KtSmartCastProvider() {
+internal class KtFe10SmartCastProvider(
+    override val analysisSession: KtFe10AnalysisSession
+) : KtSmartCastProvider(), Fe10KtAnalysisSessionComponent {
     override val token: ValidityToken
         get() = analysisSession.token
 
     override fun getSmartCastedToType(expression: KtExpression): KtType? {
         withValidityAssertion {
-            val bindingContext = analysisSession.analyze(expression)
+            val bindingContext = analysisContext.analyze(expression)
             val smartCasts = bindingContext[BindingContext.SMARTCAST, expression] ?: return null
 
             if (smartCasts is MultipleSmartCasts) {
-                return TypeIntersector.intersectTypes(smartCasts.map.values)?.toKtType(analysisSession)
+                return TypeIntersector.intersectTypes(smartCasts.map.values)?.toKtType(analysisContext)
             }
 
-            return smartCasts.defaultType?.toKtType(analysisSession)
+            return smartCasts.defaultType?.toKtType(analysisContext)
         }
     }
 
     override fun getImplicitReceiverSmartCast(expression: KtExpression): Collection<ImplicitReceiverSmartCast> {
         withValidityAssertion {
-            val bindingContext = analysisSession.analyze(expression)
+            val bindingContext = analysisContext.analyze(expression)
             val smartCasts = bindingContext[BindingContext.IMPLICIT_RECEIVER_SMARTCAST, expression] ?: return emptyList()
             return smartCasts.receiverTypes.map { (_, type) ->
                 val kind = ImplicitReceiverSmartcastKind.DISPATCH // TODO provide precise kind
-                ImplicitReceiverSmartCast(type.toKtType(analysisSession), kind)
+                ImplicitReceiverSmartCast(type.toKtType(analysisContext), kind)
             }
         }
     }

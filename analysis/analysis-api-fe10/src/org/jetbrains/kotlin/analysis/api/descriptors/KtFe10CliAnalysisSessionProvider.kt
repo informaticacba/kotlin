@@ -8,10 +8,10 @@ package org.jetbrains.kotlin.analysis.api.descriptors
 import org.jetbrains.kotlin.analysis.api.InvalidWayOfUsingAnalysisSession
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSessionProvider
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.base.KtFe10Symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
 import org.jetbrains.kotlin.analysis.api.tokens.ValidityTokenFactory
 import org.jetbrains.kotlin.psi.KtElement
+import java.lang.UnsupportedOperationException
 
 @InvalidWayOfUsingAnalysisSession
 class KtFe10AnalysisSessionProvider : KtAnalysisSessionProvider() {
@@ -22,16 +22,7 @@ class KtFe10AnalysisSessionProvider : KtAnalysisSessionProvider() {
 
     @InvalidWayOfUsingAnalysisSession
     override fun getAnalysisSessionBySymbol(contextSymbol: KtSymbol): KtAnalysisSession {
-        if (contextSymbol is KtFe10Symbol) {
-            return contextSymbol.analysisSession
-        } else {
-            val contextElement = contextSymbol.psi
-            if (contextElement is KtElement) {
-                return KtFe10AnalysisSession(contextElement, contextSymbol.token)
-            }
-        }
-
-        throw IllegalArgumentException("Unsupported symbol kind: $contextSymbol")
+        throw UnsupportedOperationException("getAnalysisSessionBySymbol() should not be used on KtFe10AnalysisSession")
     }
 
     override fun clearCaches() {}
