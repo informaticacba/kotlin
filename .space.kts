@@ -3,7 +3,6 @@ job("Warmup data") {
         // run on schedule every day at 5AM
         schedule {
             cron("0 5 * * *")
-            enabled = false
         }
     }
 
