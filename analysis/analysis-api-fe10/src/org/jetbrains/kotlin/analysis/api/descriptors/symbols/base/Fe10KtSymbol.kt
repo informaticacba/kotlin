@@ -3,14 +3,15 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.analysis.api.descriptors.components.base
+package org.jetbrains.kotlin.analysis.api.descriptors.symbols.base
 
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisContext
-import org.jetbrains.kotlin.analysis.api.descriptors.Fe10KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
+import org.jetbrains.kotlin.analysis.api.tokens.ValidityToken
 
-interface Fe10KtAnalysisSessionComponent {
-    val analysisSession: Fe10KtAnalysisSession
-
+interface Fe10KtSymbol : KtSymbol {
     val analysisContext: Fe10AnalysisContext
-        get() = analysisSession.analysisContext
+
+    override val token: ValidityToken
+        get() = analysisContext.token
 }

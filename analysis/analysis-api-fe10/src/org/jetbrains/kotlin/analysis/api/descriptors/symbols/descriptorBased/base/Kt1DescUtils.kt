@@ -10,12 +10,11 @@ import org.jetbrains.kotlin.analysis.api.KtTypeArgument
 import org.jetbrains.kotlin.analysis.api.KtTypeArgumentWithVariance
 import org.jetbrains.kotlin.analysis.api.components.KtDeclarationRendererOptions
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisContext
-import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
 import org.jetbrains.kotlin.analysis.api.descriptors.symbols.descriptorBased.*
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.KtFe10PsiSymbol
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base.Fe10PsiKtSymbol
 import org.jetbrains.kotlin.analysis.api.descriptors.types.*
-import org.jetbrains.kotlin.analysis.api.descriptors.types.base.KtFe10TypeAndAnnotations
-import org.jetbrains.kotlin.analysis.api.descriptors.utils.KtFe10Renderer
+import org.jetbrains.kotlin.analysis.api.descriptors.types.base.Fe10KtTypeAndAnnotations
+import org.jetbrains.kotlin.analysis.api.descriptors.utils.Fe10DeclarationRenderer
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.symbols.markers.*
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -65,7 +64,7 @@ internal val ClassDescriptor.isInterfaceLike: Boolean
 
 internal fun DeclarationDescriptor.toKtSymbol(analysisContext: Fe10AnalysisContext): KtSymbol? {
     if (this is ClassDescriptor && kind == ClassKind.ENUM_ENTRY) {
-        return KtFe10DescEnumEntrySymbol(this, analysisContext)
+        return Fe10DescKtEnumEntrySymbol(this, analysisContext)
     }
 
     return when (this) {
@@ -77,8 +76,8 @@ internal fun DeclarationDescriptor.toKtSymbol(analysisContext: Fe10AnalysisConte
 
 internal fun ClassifierDescriptor.toKtClassifierSymbol(analysisContext: Fe10AnalysisContext): KtClassifierSymbol? {
     return when (this) {
-        is TypeAliasDescriptor -> KtFe10DescTypeAliasSymbol(this, analysisContext)
-        is TypeParameterDescriptor -> KtFe10DescTypeParameterSymbol(this, analysisContext)
+        is TypeAliasDescriptor -> Fe10DescKtTypeAliasSymbol(this, analysisContext)
+        is TypeParameterDescriptor -> Fe10DescKtTypeParameterSymbol(this, analysisContext)
         is ClassDescriptor -> toKtClassSymbol(analysisContext)
         else -> null
     }
@@ -86,9 +85,9 @@ internal fun ClassifierDescriptor.toKtClassifierSymbol(analysisContext: Fe10Anal
 
 internal fun ClassDescriptor.toKtClassSymbol(analysisContext: Fe10AnalysisContext): KtClassOrObjectSymbol {
     return if (DescriptorUtils.isAnonymousObject(this)) {
-        KtFe10DescAnonymousObjectSymbol(this, analysisContext)
+        Fe10DescKtAnonymousObjectSymbol(this, analysisContext)
     } else {
-        KtFe10DescNamedClassOrObjectSymbol(this, analysisContext)
+        Fe10DescKtNamedClassOrObjectSymbol(this, analysisContext)
     }
 }
 
@@ -97,7 +96,7 @@ internal fun ConstructorDescriptor.toKtConstructorSymbol(analysisContext: Fe10An
         return this.underlyingConstructorDescriptor.toKtConstructorSymbol(analysisContext)
     }
 
-    return KtFe10DescConstructorSymbol(this, analysisContext)
+    return Fe10DescKtConstructorSymbol(this, analysisContext)
 }
 
 internal val CallableMemberDescriptor.ktHasStableParameterNames: Boolean
@@ -112,39 +111,39 @@ internal val CallableMemberDescriptor.ktHasStableParameterNames: Boolean
 
 internal fun CallableDescriptor.toKtCallableSymbol(analysisContext: Fe10AnalysisContext): KtCallableSymbol? {
     return when (this) {
-        is PropertyGetterDescriptor -> KtFe10DescPropertyGetterSymbol(this, analysisContext)
-        is PropertySetterDescriptor -> KtFe10DescPropertySetterSymbol(this, analysisContext)
-        is SamConstructorDescriptor -> KtFe10DescSamConstructorSymbol(this, analysisContext)
+        is PropertyGetterDescriptor -> Fe10DescKtPropertyGetterSymbol(this, analysisContext)
+        is PropertySetterDescriptor -> Fe10DescKtPropertySetterSymbol(this, analysisContext)
+        is SamConstructorDescriptor -> Fe10DescKtSamConstructorSymbol(this, analysisContext)
         is ConstructorDescriptor -> toKtConstructorSymbol(analysisContext)
         is FunctionDescriptor -> {
             if (DescriptorUtils.isAnonymousFunction(this)) {
-                KtFe10DescAnonymousFunctionSymbol(this, analysisContext)
+                Fe10DescKtAnonymousFunctionSymbol(this, analysisContext)
             } else {
-                KtFe10DescFunctionSymbol(this, analysisContext)
+                Fe10DescKtFunctionSymbol(this, analysisContext)
             }
         }
-        is SyntheticFieldDescriptor -> KtFe10DescSyntheticFieldSymbol(this, analysisContext)
-        is LocalVariableDescriptor -> KtFe10DescLocalVariableSymbol(this, analysisContext)
-        is ValueParameterDescriptor -> KtFe10DescValueParameterSymbol(this, analysisContext)
-        is SyntheticJavaPropertyDescriptor -> KtFe10DescSyntheticJavaPropertySymbol(this, analysisContext)
-        is JavaForKotlinOverridePropertyDescriptor -> KtFe10DescSyntheticJavaPropertySymbolForOverride(this, analysisContext)
-        is JavaPropertyDescriptor -> KtFe10DescJavaFieldSymbol(this, analysisContext)
-        is PropertyDescriptorImpl -> KtFe10DescKotlinPropertySymbol(this, analysisContext)
+        is SyntheticFieldDescriptor -> Fe10DescKtSyntheticFieldSymbol(this, analysisContext)
+        is LocalVariableDescriptor -> Fe10DescKtLocalVariableSymbol(this, analysisContext)
+        is ValueParameterDescriptor -> Fe10DescKtValueParameterSymbol(this, analysisContext)
+        is SyntheticJavaPropertyDescriptor -> Fe10DescKtSyntheticJavaPropertySymbol(this, analysisContext)
+        is JavaForKotlinOverridePropertyDescriptor -> Fe10DescKtSyntheticJavaPropertySymbolForOverride(this, analysisContext)
+        is JavaPropertyDescriptor -> Fe10DescKtJavaFieldSymbol(this, analysisContext)
+        is PropertyDescriptorImpl -> Fe10DescKtKotlinPropertySymbol(this, analysisContext)
         else -> null
     }
 }
 
 internal fun KotlinType.toKtType(analysisContext: Fe10AnalysisContext): KtType {
     return when (val unwrappedType = unwrap()) {
-        is FlexibleType -> KtFe10FlexibleType(unwrappedType, analysisContext)
-        is DefinitelyNotNullType -> KtFe10DefinitelyNotNullType(unwrappedType, analysisContext)
-        is ErrorType -> KtFe10ClassErrorType(unwrappedType, analysisContext)
-        is CapturedType -> KtFe10CapturedType(unwrappedType, analysisContext)
-        is NewCapturedType -> KtFe10NewCapturedType(unwrappedType, analysisContext)
+        is FlexibleType -> Fe10KtFlexibleType(unwrappedType, analysisContext)
+        is DefinitelyNotNullType -> Fe10KtDefinitelyNotNullType(unwrappedType, analysisContext)
+        is ErrorType -> Fe10KtClassErrorType(unwrappedType, analysisContext)
+        is CapturedType -> Fe10KtCapturedType(unwrappedType, analysisContext)
+        is NewCapturedType -> Fe10KtNewCapturedType(unwrappedType, analysisContext)
         is SimpleType -> {
             val typeParameterDescriptor = TypeUtils.getTypeParameterDescriptorOrNull(unwrappedType)
             if (typeParameterDescriptor != null) {
-                return KtFe10TypeParameterType(unwrappedType, typeParameterDescriptor, analysisContext)
+                return Fe10KtTypeParameterType(unwrappedType, typeParameterDescriptor, analysisContext)
             }
 
             val typeConstructor = unwrappedType.constructor
@@ -152,22 +151,22 @@ internal fun KotlinType.toKtType(analysisContext: Fe10AnalysisContext): KtType {
             if (typeConstructor is NewTypeVariableConstructor) {
                 val newTypeParameterDescriptor = typeConstructor.originalTypeParameter
                 return if (newTypeParameterDescriptor != null) {
-                    KtFe10TypeParameterType(unwrappedType, newTypeParameterDescriptor, analysisContext)
+                    Fe10KtTypeParameterType(unwrappedType, newTypeParameterDescriptor, analysisContext)
                 } else {
-                    KtFe10ClassErrorType(ErrorUtils.createErrorType("Unresolved type parameter type") as ErrorType, analysisContext)
+                    Fe10KtClassErrorType(ErrorUtils.createErrorType("Unresolved type parameter type") as ErrorType, analysisContext)
                 }
             }
 
             if (typeConstructor is IntersectionTypeConstructor) {
-                return KtFe10IntersectionType(unwrappedType, typeConstructor.supertypes, analysisContext)
+                return Fe10KtIntersectionType(unwrappedType, typeConstructor.supertypes, analysisContext)
             }
 
             return when (val typeDeclaration = typeConstructor.declarationDescriptor) {
-                is FunctionClassDescriptor -> KtFe10FunctionalType(unwrappedType, typeDeclaration, analysisContext)
-                is ClassDescriptor -> KtFe10UsualClassType(unwrappedType, typeDeclaration, analysisContext)
+                is FunctionClassDescriptor -> Fe10KtFunctionalType(unwrappedType, typeDeclaration, analysisContext)
+                is ClassDescriptor -> Fe10KtUsualClassType(unwrappedType, typeDeclaration, analysisContext)
                 else -> {
                     val errorType = ErrorUtils.createErrorTypeWithCustomConstructor("Unresolved class type", typeConstructor)
-                    KtFe10ClassErrorType(errorType as ErrorType, analysisContext)
+                    Fe10KtClassErrorType(errorType as ErrorType, analysisContext)
                 }
             }
 
@@ -177,7 +176,7 @@ internal fun KotlinType.toKtType(analysisContext: Fe10AnalysisContext): KtType {
 }
 
 internal fun KotlinType.toKtTypeAndAnnotations(analysisContext: Fe10AnalysisContext): KtTypeAndAnnotations {
-    return KtFe10TypeAndAnnotations(toKtType(analysisContext), this, analysisContext.token)
+    return Fe10KtTypeAndAnnotations(toKtType(analysisContext), this, analysisContext.token)
 }
 
 internal fun TypeProjection.toKtTypeArgument(analysisContext: Fe10AnalysisContext): KtTypeArgument {
@@ -262,8 +261,8 @@ internal val CallableMemberDescriptor.callableId: CallableId?
 
 internal fun getSymbolDescriptor(symbol: KtSymbol): DeclarationDescriptor? {
     return when (symbol) {
-        is KtFe10DescSymbol<*> -> symbol.descriptor
-        is KtFe10PsiSymbol<*, *> -> symbol.descriptor
+        is Fe10DescKtSymbol<*> -> symbol.descriptor
+        is Fe10PsiKtSymbol<*, *> -> symbol.descriptor
         else -> null
     }
 }
@@ -289,7 +288,7 @@ internal fun ClassDescriptor.getSupertypesWithAny(): Collection<KotlinType> {
 }
 
 internal fun DeclarationDescriptor.render(analysisContext: Fe10AnalysisContext, options: KtDeclarationRendererOptions): String {
-    val renderer = KtFe10Renderer(analysisContext, options)
+    val renderer = Fe10DeclarationRenderer(analysisContext, options)
     val consumer = StringBuilder()
     renderer.render(this, consumer)
     return consumer.toString().trim()

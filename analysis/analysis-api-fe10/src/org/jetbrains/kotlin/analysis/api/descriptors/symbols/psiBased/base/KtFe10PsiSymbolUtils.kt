@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.analysis.api.descriptors.symbols.psiBased.base
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.descriptors.symbols.base.KtFe10Symbol
-import org.jetbrains.kotlin.analysis.api.descriptors.types.KtFe10ClassErrorType
+import org.jetbrains.kotlin.analysis.api.descriptors.symbols.base.Fe10KtSymbol
+import org.jetbrains.kotlin.analysis.api.descriptors.types.Fe10KtClassErrorType
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtAnnotationCall
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolKind
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtTypeAndAnnotations
@@ -117,7 +117,7 @@ internal fun PsiElement.getResolutionScope(bindingContext: BindingContext): Lexi
     return null
 }
 
-internal fun KtFe10Symbol.createErrorTypeAndAnnotations(): KtTypeAndAnnotations {
+internal fun Fe10KtSymbol.createErrorTypeAndAnnotations(): KtTypeAndAnnotations {
     val errorType = createErrorType()
 
     return object : KtTypeAndAnnotations() {
@@ -131,7 +131,7 @@ internal fun KtFe10Symbol.createErrorTypeAndAnnotations(): KtTypeAndAnnotations 
     }
 }
 
-internal fun KtFe10Symbol.createErrorType(): KtType {
+internal fun Fe10KtSymbol.createErrorType(): KtType {
     val type = ErrorUtils.createErrorType("Type is unavailable for declaration $psi") as ErrorType
-    return KtFe10ClassErrorType(type, analysisContext)
+    return Fe10KtClassErrorType(type, analysisContext)
 }

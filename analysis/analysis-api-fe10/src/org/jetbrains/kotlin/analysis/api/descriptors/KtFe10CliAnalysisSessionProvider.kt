@@ -11,13 +11,12 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSessionProvider
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
 import org.jetbrains.kotlin.analysis.api.tokens.ValidityTokenFactory
 import org.jetbrains.kotlin.psi.KtElement
-import java.lang.UnsupportedOperationException
 
 @InvalidWayOfUsingAnalysisSession
-class KtFe10AnalysisSessionProvider : KtAnalysisSessionProvider() {
+class Fe10KtAnalysisSessionProvider : KtAnalysisSessionProvider() {
     @InvalidWayOfUsingAnalysisSession
     override fun getAnalysisSession(contextElement: KtElement, factory: ValidityTokenFactory): KtAnalysisSession {
-        return KtFe10AnalysisSession(contextElement, factory.create(contextElement.project))
+        return Fe10KtAnalysisSession(contextElement, factory.create(contextElement.project))
     }
 
     @InvalidWayOfUsingAnalysisSession

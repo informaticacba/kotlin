@@ -13,8 +13,8 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSessionProvider
 import org.jetbrains.kotlin.analysis.api.descriptors.CliFe10AnalysisFacade
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisFacade
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisHandlerExtension
-import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSessionProvider
-import org.jetbrains.kotlin.analysis.api.descriptors.references.base.KtFe10KotlinReferenceProviderContributor
+import org.jetbrains.kotlin.analysis.api.descriptors.Fe10KtAnalysisSessionProvider
+import org.jetbrains.kotlin.analysis.api.descriptors.references.base.Fe10KotlinReferenceProviderContributor
 import org.jetbrains.kotlin.analysis.api.impl.barebone.test.FrontendApiTestConfiguratorService
 import org.jetbrains.kotlin.analysis.api.impl.base.references.HLApiReferenceProviderService
 import org.jetbrains.kotlin.idea.references.KotlinReferenceProviderContributor
@@ -41,7 +41,7 @@ object KtFe10FrontendApiTestConfiguratorService : FrontendApiTestConfiguratorSer
 
     @OptIn(InvalidWayOfUsingAnalysisSession::class)
     override fun registerProjectServices(project: MockProject) {
-        project.registerService(KtAnalysisSessionProvider::class.java, KtFe10AnalysisSessionProvider())
+        project.registerService(KtAnalysisSessionProvider::class.java, Fe10KtAnalysisSessionProvider())
         project.registerService(Fe10AnalysisFacade::class.java, CliFe10AnalysisFacade(project))
         AnalysisHandlerExtension.registerExtension(project, KtFe10AnalysisHandlerExtension())
     }
@@ -49,7 +49,7 @@ object KtFe10FrontendApiTestConfiguratorService : FrontendApiTestConfiguratorSer
     override fun registerApplicationServices(application: MockApplication) {
         if (application.getServiceIfCreated(KotlinReferenceProvidersService::class.java) == null) {
             application.registerService(KotlinReferenceProvidersService::class.java, HLApiReferenceProviderService::class.java)
-            application.registerService(KotlinReferenceProviderContributor::class.java, KtFe10KotlinReferenceProviderContributor::class.java)
+            application.registerService(KotlinReferenceProviderContributor::class.java, Fe10KotlinReferenceProviderContributor::class.java)
         }
     }
 
